@@ -1,6 +1,5 @@
-// FForsikring Arbejdsskade – Netlify micro-app
+// FForsikring Arbejdsskade – Netlify micro-app (v2 fix: no '\n' literal; full positions list loaded from JSON)
 (function(){
-  // Auto-height to parent (Webflow)
   function postHeight(){
     const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
     parent.postMessage({ type:'FF_CALC_HEIGHT', height:h }, '*');
@@ -8,7 +7,6 @@
   new ResizeObserver(postHeight).observe(document.documentElement);
   window.addEventListener('load', postHeight);
 
-  // Build DOM
   const root = document.createElement('div');
   root.className = 'wrap';
   root.innerHTML = `
@@ -77,10 +75,9 @@
 
   const state = { step:1, cvr:'', virk:null, antal:1, roles:[], total:0 };
   const money = (n)=> (n||0).toLocaleString('da-DK',{minimumFractionDigits:0}) + ' kr.';
-  const cleanCVR = (v)=> String(v||'').replace(/\D+/g,'').slice(0,8);
+  const cleanCVR = (v)=> String(v||'').replace(/\\D+/g,'').slice(0,8);
   const debounce = (fn,ms=400)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
 
-  // Load positions
   let POS=[];
   fetch('positions.json').then(r=>r.json()).then(d=>{ POS = (d||[]).sort((a,b)=> a.label.localeCompare(b.label,'da')); init(); }).catch(()=>{ POS=[]; init(); });
 
@@ -111,7 +108,8 @@
 
   function makeCombo(host, idx){
     host.className='combobox';
-    host.innerHTML = '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">n<div class="combo-list" role="listbox"></div>';
+    host.innerHTML = '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">' +
+                     '<div class="combo-list" role="listbox"></div>';
     const input = host.querySelector('input'), list = host.querySelector('.combo-list');
     let opts = POS; let open=false, cursor=-1;
     const openList=()=>{ list.style.display='block'; input.setAttribute('aria-expanded','true'); open=true; };
@@ -154,7 +152,6 @@
   }
 
   function init(){
-    // Step nav with bridge animation 2 -> 3
     function setStepSafe(n){
       const bridge = document.getElementById('bridge');
       if(n===3){ bridge.classList.add('show'); setTimeout(()=>{ bridge.classList.remove('show'); setStep(3); }, 900); }
@@ -195,8 +192,8 @@
 
     function handleSubmit(){
       const phone = document.getElementById('lead-phone').value.trim();
-      if(!/^\d{8}$/.test(phone.replace(/\D+/g,''))){ alert('Skriv et dansk telefonnummer på 8 cifre.'); return; }
-      if(!/^\d{8}$/.test(cleanCVR(cvrInput.value))){ alert('Udfyld gyldigt CVR-nummer.'); return; }
+      if(!/^\\d{8}$/.test(phone.replace(/\\D+/g,''))){ alert('Skriv et dansk telefonnummer på 8 cifre.'); return; }
+      if(!/^\\d{8}$/.test(cleanCVR(cvrInput.value))){ alert('Udfyld gyldigt CVR-nummer.'); return; }
 
       const urlp = new URLSearchParams(location.search);
       const payload = {
