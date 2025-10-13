@@ -1,9 +1,3 @@
-// FForsikring Arbejdsskade – Cloudflare Pages version
-// - CVR hentes via /api/cvr (Cloudflare Pages Function)
-// - Robust DK-telefon-normalisering (+45 / 0045 / 45 fjernes)
-// - CVR-rensning (kun 8 cifre) + tydelig status
-// - Forbedret fejllogning for nem debug i Console
-
 (function () {
   /* -------- iframe-højde til parent -------- */
   function postHeight() {
@@ -137,64 +131,25 @@
       init();
     });
 
-  // Cloudflare Pages Function: /api/cvr
- // Ny forbedret version med kvote-håndtering
-async function fetchVirkByCVR(cvr) {
-  try {
-    const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
-    if (!r.ok) {
-      if (r.status === 429) {
-        console.warn("CVR kvote ramt");
-        return { kvote: true }; // signalér til UI
+  /* -------- Cloudflare function: /api/cvr -------- */
+  // Kvote-håndtering: returnerer {kvote:true} ved 429
+  async function fetchVirkByCVR(cvr) {
+    try {
+      const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
+      if (!r.ok) {
+        if (r.status === 429) {
+          console.warn("CVR kvote ramt");
+          return { kvote: true };
+        }
+        const err = await r.json().catch(() => null);
+        console.warn("CVR endpoint fejl:", r.status, err);
+        return null;
       }
-      const err = await r.json().catch(() => null);
-      console.warn("CVR endpoint fejl:", r.status, err);
-      return null;
-    }
-    return await r.json();
-  } catch (e) {
-    console.error("CVR fetch exception:", e);
-    return null;
-  }
-}
-      }
-      const d = await r.json();
-      // understøt både normaliseret svar og rå cvrapi.dk
-      const navn = d.name || d.virksomhedsnavn || (d.raw && d.raw.name);
-      const address =
-        d.address || (d.raw && d.raw.address) || null;
-      const zip = d.zipcode || (d.raw && (d.raw.zip || d.raw.zipcode)) || null;
-      const city = d.city || (d.raw && d.raw.city) || null;
-      const branche =
-        d.industrydesc ||
-        d.main_industrycode_tekst ||
-        (d.raw && (d.raw.industrydesc || d.raw.main_industrycode_tekst)) ||
-        null;
-      const branchekode =
-        d.industrycode ||
-        d.main_industrycode ||
-        (d.raw && (d.raw.industrycode || d.raw.main_industrycode)) ||
-        null;
-      const ansatte =
-        typeof d.employees === "number"
-          ? d.employees
-          : (d.employeesYear || d.antal_ansatte || (d.raw && d.raw.employees) || null);
-
-      if (d.cvr || d.vat || d.raw) {
-        return {
-          cvr: d.cvr || d.vat || (d.raw && (d.raw.cvr || d.raw.vat)) || cvr,
-          navn,
-          adresse: [address, zip, city].filter(Boolean).join(", "),
-          branche,
-          branchekode,
-          ansatte,
-        };
-      }
+      return await r.json();
     } catch (e) {
       console.error("CVR fetch exception:", e);
       return null;
     }
-    return null;
   }
 
   /* -------- UI logik -------- */
@@ -356,16 +311,29 @@ async function fetchVirkByCVR(cvr) {
       }
       if (box) box.textContent = "Henter virksomhedsdata…";
       const v = await fetchVirkByCVR(val);
-      if (v) {
+
+      if (v?.kvote) {
+        box.innerHTML =
+          '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
+        postHeight();
+        return;
+      }
+
+      if (v && (v.navn || v.name || v.cvr)) {
+        const navn = v.navn || v.name || "-";
+        const adresse = v.adresse || v.address || "-";
+        const branche = v.branche || v.industrydesc;
+        const branchekode = v.branchekode || v.industrycode;
+
         state.virk = v;
         state.cvr = val;
         if (box) {
           box.innerHTML =
-            '<div class="review-row"><strong>Virksomhed:</strong> ' + (v.navn || "-") + "</div>" +
+            '<div class="review-row"><strong>Virksomhed:</strong> ' + (navn || "-") + "</div>" +
             '<div class="review-row"><strong>CVR:</strong> ' + (v.cvr || "-") + "</div>" +
-            '<div class="review-row"><strong>Adresse:</strong> ' + (v.adresse || "-") + "</div>" +
-            (v.branche ? '<div class="review-row"><strong>Branche:</strong> ' + v.branche + "</div>" : "") +
-            (v.branchekode ? '<div class="review-row"><strong>Branchekode:</strong> ' + v.branchekode + "</div>" : "") +
+            '<div class="review-row"><strong>Adresse:</strong> ' + (adresse || "-") + "</div>" +
+            (branche ? '<div class="review-row"><strong>Branche:</strong> ' + branche + "</div>" : "") +
+            (branchekode ? '<div class="review-row"><strong>Branchekode:</strong> ' + branchekode + "</div>" : "") +
             (v.ansatte != null ? '<div class="review-row"><strong>Antal ansatte:</strong> ' + v.ansatte + "</div>" : "");
         }
       } else {
@@ -436,7 +404,7 @@ async function fetchVirkByCVR(cvr) {
 
       const validCVR = cleanCVR(cvrInput?.value);
       if (validCVR.length !== 8) {
-        alert("Udfyld gyldigt CVR-nummer.");
+        alert("Indtast gyldigt CVR-nummer.");
         return;
       }
 
@@ -458,7 +426,6 @@ async function fetchVirkByCVR(cvr) {
       };
 
       // NOTE: Lav evt. en Cloudflare function til lead: /functions/api/lead.js
-      // Hvis ikke den findes endnu, kan du kommentere kaldet ud.
       fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
