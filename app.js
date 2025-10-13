@@ -1,8 +1,8 @@
 // FForsikring Arbejdsskade – Cloudflare Pages version
 // - CVR hentes via /api/cvr (Cloudflare Pages Function)
 // - Robust DK-telefon-normalisering (+45 / 0045 / 45 fjernes)
-// - CVR-rensning rettet (kun 8 cifre)
-// - Beholder postMessage-højdejustering til iframe-embed
+// - CVR-rensning (kun 8 cifre) + tydelig status
+// - Forbedret fejllogning for nem debug i Console
 
 (function () {
   /* -------- iframe-højde til parent -------- */
@@ -11,7 +11,9 @@
       document.documentElement.scrollHeight,
       document.body.scrollHeight
     );
-    parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*");
+    try {
+      parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*");
+    } catch (_) {}
   }
   new ResizeObserver(postHeight).observe(document.documentElement);
   window.addEventListener("load", postHeight);
@@ -95,6 +97,7 @@
   /* -------- helpers -------- */
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+
   const state = { step: 1, cvr: "", virk: null, antal: 1, roles: [], total: 0 };
   const money = (n) =>
     (n || 0).toLocaleString("da-DK", { minimumFractionDigits: 0 }) + " kr.";
@@ -128,7 +131,8 @@
       POS = (d || []).sort((a, b) => a.label.localeCompare(b.label, "da"));
       init();
     })
-    .catch(() => {
+    .catch((e) => {
+      console.warn("Kunne ikke hente positions.json:", e);
       POS = [];
       init();
     });
@@ -136,23 +140,49 @@
   // Cloudflare Pages Function: /api/cvr
   async function fetchVirkByCVR(cvr) {
     try {
-      const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
-      if (!r.ok) throw new Error("upstream");
+      const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr), {
+        method: "GET",
+        headers: { accept: "application/json" },
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => null);
+        console.warn("CVR endpoint fejl:", r.status, err);
+        return null;
+      }
       const d = await r.json();
-      if (d && (d.cvr || d.vat))
+      // understøt både normaliseret svar og rå cvrapi.dk
+      const navn = d.name || d.virksomhedsnavn || (d.raw && d.raw.name);
+      const address =
+        d.address || (d.raw && d.raw.address) || null;
+      const zip = d.zipcode || (d.raw && (d.raw.zip || d.raw.zipcode)) || null;
+      const city = d.city || (d.raw && d.raw.city) || null;
+      const branche =
+        d.industrydesc ||
+        d.main_industrycode_tekst ||
+        (d.raw && (d.raw.industrydesc || d.raw.main_industrycode_tekst)) ||
+        null;
+      const branchekode =
+        d.industrycode ||
+        d.main_industrycode ||
+        (d.raw && (d.raw.industrycode || d.raw.main_industrycode)) ||
+        null;
+      const ansatte =
+        typeof d.employees === "number"
+          ? d.employees
+          : (d.employeesYear || d.antal_ansatte || (d.raw && d.raw.employees) || null);
+
+      if (d.cvr || d.vat || d.raw) {
         return {
-          cvr: d.cvr || d.vat,
-          navn: d.name || d.virksomhedsnavn,
-          adresse: [d.address, d.zipcode, d.city].filter(Boolean).join(", "),
-          branche: d.industrydesc || d.main_industrycode_tekst || null,
-          branchekode:
-            d.industrycode || d.main_industrycode || d.branchekode || null,
-          ansatte:
-            typeof d.employees === "number"
-              ? d.employees
-              : d.employeesYear || d.antal_ansatte || null,
+          cvr: d.cvr || d.vat || (d.raw && (d.raw.cvr || d.raw.vat)) || cvr,
+          navn,
+          adresse: [address, zip, city].filter(Boolean).join(", "),
+          branche,
+          branchekode,
+          ansatte,
         };
+      }
     } catch (e) {
+      console.error("CVR fetch exception:", e);
       return null;
     }
     return null;
@@ -164,9 +194,7 @@
     $$(".step").forEach((el) =>
       el.classList.toggle("is", +el.dataset.step === n)
     );
-    $$(".pane").forEach(
-      (el) => (el.hidden = +el.dataset.step !== n)
-    );
+    $$(".pane").forEach((el) => (el.hidden = +el.dataset.step !== n));
     window.scrollTo({ top: 0, behavior: "smooth" });
     postHeight();
   }
@@ -176,11 +204,12 @@
     host.innerHTML =
       '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">' +
       '<div class="combo-list" role="listbox"></div>';
-    const input = host.querySelector("input"),
-      list = host.querySelector(".combo-list");
+
+    const input = host.querySelector("input");
+    const list = host.querySelector(".combo-list");
     let opts = POS;
-    let open = false,
-      cursor = -1;
+    let open = false, cursor = -1;
+
     const openList = () => {
       list.style.display = "block";
       input.setAttribute("aria-expanded", "true");
@@ -189,8 +218,7 @@
     const closeList = () => {
       list.style.display = "none";
       input.setAttribute("aria-expanded", "false");
-      open = false;
-      cursor = -1;
+      open = false; cursor = -1;
     };
     const render = (items) => {
       list.innerHTML = "";
@@ -212,32 +240,20 @@
       const s = (q || "").toLowerCase();
       opts = POS.filter((o) => o.label.toLowerCase().includes(s));
       render(opts);
-      if (opts.length) openList();
-      else closeList();
+      if (opts.length) openList(); else closeList();
     };
-    input.addEventListener("input", (e) => {
-      filter(e.target.value);
-    });
-    input.addEventListener("focus", () => {
-      filter(input.value);
-    });
+
+    input.addEventListener("input", (e) => filter(e.target.value));
+    input.addEventListener("focus", () => filter(input.value));
     input.addEventListener("keydown", (e) => {
       if (!open && ["ArrowDown", "Enter"].includes(e.key)) {
-        filter(input.value);
-        return;
+        filter(input.value); return;
       }
-      if (e.key === "Escape") {
-        closeList();
-        return;
-      }
+      if (e.key === "Escape") { closeList(); return; }
       if (!open) return;
-      if (e.key === "ArrowDown") {
-        cursor = Math.min(cursor + 1, opts.length - 1);
-        render(opts);
-      } else if (e.key === "ArrowUp") {
-        cursor = Math.max(cursor - 1, 0);
-        render(opts);
-      } else if (e.key === "Enter") {
+      if (e.key === "ArrowDown") { cursor = Math.min(cursor + 1, opts.length - 1); render(opts); }
+      else if (e.key === "ArrowUp") { cursor = Math.max(cursor - 1, 0); render(opts); }
+      else if (e.key === "Enter") {
         if (opts[cursor]) {
           input.value = opts[cursor].label;
           state.roles[idx] = opts[cursor].label;
@@ -245,28 +261,29 @@
         }
       }
     });
-    document.addEventListener(
-      "click",
-      (e) => {
-        if (!host.contains(e.target)) closeList();
-      },
-      { passive: true }
-    );
+
+    document.addEventListener("click", (e) => {
+      if (!host.contains(e.target)) closeList();
+    }, { passive: true });
   }
 
   function renderRoleSelectors() {
     const sel = $("#antal");
-    if (sel.children.length === 0) {
+    if (sel && sel.children.length === 0) {
       sel.innerHTML =
         Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("") +
         '<option value="10+">10+</option>';
     }
+
     const container = document.getElementById("roles");
+    if (!container) return;
+
     const prev = [...state.roles];
     container.innerHTML = "";
-    const v = sel.value || "1";
+    const v = (sel && sel.value) || "1";
     state.antal = v === "10+" ? 10 : parseInt(v, 10);
     state.roles = new Array(state.antal).fill("");
+
     for (let i = 0; i < state.antal; i++) {
       const wrap = document.createElement("div");
       wrap.className = "item";
@@ -289,6 +306,7 @@
   function calculateTotal() {
     let sum = 0;
     const list = document.getElementById("breakdown");
+    if (!list) return;
     list.classList.add("role-list");
     list.innerHTML = "";
     const byLabel = new Map(POS.map((o) => [o.label, o.price]));
@@ -299,17 +317,14 @@
       const row = document.createElement("div");
       row.className = "role-card";
       row.innerHTML =
-        '<div class="idx">' +
-        (i + 1) +
-        '</div><div class="role-chip">' +
-        (r || "—") +
-        '</div><div class="price-pill">' +
-        money(p) +
-        "</div>";
+        '<div class="idx">' + (i + 1) + '</div>' +
+        '<div class="role-chip">' + (r || "—") + '</div>' +
+        '<div class="price-pill">' + money(p) + "</div>";
       list.appendChild(row);
     }
     state.total = Math.round(sum);
-    document.getElementById("total").textContent = money(state.total);
+    const totalEl = document.getElementById("total");
+    if (totalEl) totalEl.textContent = money(state.total);
     postHeight();
   }
 
@@ -323,85 +338,80 @@
     const back3 = document.getElementById("back3");
     const submitBtn = document.getElementById("submit");
 
+    // CVR live-opslag
     const handleCVRInput = debounce(async (val) => {
-      if (val.length === 8) {
-        const box = document.getElementById("virk-box");
-        box.textContent = "Henter virksomhedsdata…";
-        const v = await fetchVirkByCVR(val);
-        if (v) {
-          state.virk = v;
-          state.cvr = val;
-          box.innerHTML =
-            '<div class="review-row"><strong>Virksomhed:</strong> ' +
-            (v.navn || "-") +
-            "</div>" +
-            '<div class="review-row"><strong>CVR:</strong> ' +
-            (v.cvr || "-") +
-            "</div>" +
-            '<div class="review-row"><strong>Adresse:</strong> ' +
-            (v.adresse || "-") +
-            "</div>" +
-            (v.branche
-              ? '<div class="review-row"><strong>Branche:</strong> ' +
-                v.branche +
-                "</div>"
-              : "") +
-            (v.branchekode
-              ? '<div class="review-row"><strong>Branchekode:</strong> ' +
-                v.branchekode +
-                "</div>"
-              : "") +
-            (v.ansatte != null
-              ? '<div class="review-row"><strong>Antal ansatte:</strong> ' +
-                v.ansatte +
-                "</div>"
-              : "");
-        } else {
-          box.innerHTML =
-            '<div class="muted">Kunne ikke hente virksomhedsdata. Vi indhenter det manuelt efterfølgende.</div>';
-        }
-        postHeight();
-      }
-    }, 450);
-
-    cvrInput.addEventListener("input", (e) => {
-      const val = cleanCVR(e.target.value);
-      e.target.value = val;
-      handleCVRInput(val);
-    });
-
-    next1.addEventListener("click", () => {
-      const val = cleanCVR(cvrInput.value);
+      const box = document.getElementById("virk-box");
       if (val.length !== 8) {
-        alert("Udfyld et gyldigt CVR-nummer.");
+        if (box) box.textContent = "Indtast 8 cifre for CVR.";
         return;
       }
-      setStep(2);
-      antalEl.focus();
+      if (box) box.textContent = "Henter virksomhedsdata…";
+      const v = await fetchVirkByCVR(val);
+      if (v) {
+        state.virk = v;
+        state.cvr = val;
+        if (box) {
+          box.innerHTML =
+            '<div class="review-row"><strong>Virksomhed:</strong> ' + (v.navn || "-") + "</div>" +
+            '<div class="review-row"><strong>CVR:</strong> ' + (v.cvr || "-") + "</div>" +
+            '<div class="review-row"><strong>Adresse:</strong> ' + (v.adresse || "-") + "</div>" +
+            (v.branche ? '<div class="review-row"><strong>Branche:</strong> ' + v.branche + "</div>" : "") +
+            (v.branchekode ? '<div class="review-row"><strong>Branchekode:</strong> ' + v.branchekode + "</div>" : "") +
+            (v.ansatte != null ? '<div class="review-row"><strong>Antal ansatte:</strong> ' + v.ansatte + "</div>" : "");
+        }
+      } else {
+        if (box) {
+          box.innerHTML = '<div class="muted">Kunne ikke hente virksomhedsdata (rate limit eller fejl). Vi indhenter det manuelt efterfølgende.</div>';
+        }
+      }
       postHeight();
-    });
+    }, 450);
 
-    antalEl.addEventListener("change", renderRoleSelectors);
+    if (cvrInput) {
+      cvrInput.addEventListener("input", (e) => {
+        const val = cleanCVR(e.target.value);
+        e.target.value = val;
+        handleCVRInput(val);
+      });
+    }
+
+    if (next1) {
+      next1.addEventListener("click", () => {
+        const val = cleanCVR(cvrInput?.value);
+        if (val.length !== 8) {
+          alert("Udfyld et gyldigt CVR-nummer.");
+          return;
+        }
+        setStep(2);
+        antalEl?.focus();
+        postHeight();
+      });
+    }
+
+    antalEl?.addEventListener("change", renderRoleSelectors);
     renderRoleSelectors();
 
     back2 && (back2.onclick = () => setStep(1));
 
-    next2 &&
-      (next2.onclick = () => {
-        const byLabel = new Map(POS.map((o) => [o.label, o.price]));
-        const bad = state.roles.findIndex((r) => !byLabel.has(r));
-        if (bad !== -1) {
-          alert("Vælg en gyldig stilling for medarbejder " + (bad + 1));
-          return;
-        }
-        calculateTotal();
-        const bridge = document.getElementById("bridge");
+    next2 && (next2.onclick = () => {
+      const byLabel = new Map(POS.map((o) => [o.label, o.price]));
+      const bad = state.roles.findIndex((r) => !byLabel.has(r));
+      if (bad !== -1) {
+        alert("Vælg en gyldig stilling for medarbejder " + (bad + 1));
+        return;
+      }
+      calculateTotal();
+      const bridge = document.getElementById("bridge");
+      if (bridge) {
         bridge.classList.add("show");
         setTimeout(() => {
           bridge.classList.remove("show");
           setStep(3);
         }, 900);
-      });
+      } else {
+        setStep(3);
+      }
+    });
 
     back3 && (back3.onclick = () => setStep(2));
 
@@ -413,10 +423,9 @@
         phoneEl && phoneEl.focus();
         return;
       }
-      // skriv renset værdi tilbage i input
       if (phoneEl) phoneEl.value = normalizedPhone;
 
-      const validCVR = cleanCVR(cvrInput.value);
+      const validCVR = cleanCVR(cvrInput?.value);
       if (validCVR.length !== 8) {
         alert("Udfyld gyldigt CVR-nummer.");
         return;
@@ -439,29 +448,35 @@
         ts: Date.now(),
       };
 
-      // TODO: Hvis du laver en Cloudflare function til lead (fx /api/lead), så skift endpoint herunder:
+      // NOTE: Lav evt. en Cloudflare function til lead: /functions/api/lead.js
+      // Hvis ikke den findes endnu, kan du kommentere kaldet ud.
       fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }).catch(() => {});
+      }).catch((e) => console.warn("Lead-kald fejlede (ignorér ved lokal test):", e));
 
       const btn = document.getElementById("submit");
-      btn.classList.add("success", "pulse");
-      btn.setAttribute("disabled", "true");
-      phoneEl.setAttribute("disabled", "true");
-      document.getElementById("thanks-card").hidden = false;
+      btn?.classList.add("success", "pulse");
+      btn?.setAttribute("disabled", "true");
+      phoneEl?.setAttribute("disabled", "true");
+      const thanks = document.getElementById("thanks-card");
+      if (thanks) thanks.hidden = false;
 
       try {
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ event: "lead_submitted", value: state.total });
-      } catch (e) {}
-      parent.postMessage(
-        { type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total },
-        "*"
-      );
+      } catch (_) {}
+      try {
+        parent.postMessage(
+          { type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total },
+          "*"
+        );
+      } catch (_) {}
+
       postHeight();
     }
-    $("#submit").addEventListener("click", handleSubmit);
+
+    submitBtn?.addEventListener("click", handleSubmit);
   }
 })();
