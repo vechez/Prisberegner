@@ -138,16 +138,25 @@
     });
 
   // Cloudflare Pages Function: /api/cvr
-  async function fetchVirkByCVR(cvr) {
-    try {
-      const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr), {
-        method: "GET",
-        headers: { accept: "application/json" },
-      });
-      if (!r.ok) {
-        const err = await r.json().catch(() => null);
-        console.warn("CVR endpoint fejl:", r.status, err);
-        return null;
+ // Ny forbedret version med kvote-håndtering
+async function fetchVirkByCVR(cvr) {
+  try {
+    const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
+    if (!r.ok) {
+      if (r.status === 429) {
+        console.warn("CVR kvote ramt");
+        return { kvote: true }; // signalér til UI
+      }
+      const err = await r.json().catch(() => null);
+      console.warn("CVR endpoint fejl:", r.status, err);
+      return null;
+    }
+    return await r.json();
+  } catch (e) {
+    console.error("CVR fetch exception:", e);
+    return null;
+  }
+}
       }
       const d = await r.json();
       // understøt både normaliseret svar og rå cvrapi.dk
