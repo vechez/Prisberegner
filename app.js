@@ -72,8 +72,8 @@
             </div>
             <aside class="grid">
               <div class="hint">Kunne du tænke dig at høre mere? Så indtast dit telefonnummer, og vi kontakter dig med et tilbud baseret på dine valg.</div>
-              <div><label for="lead-phone">Telefon</label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="20 12 34 56" required autocomplete="tel"></div>
-              <div class="hint">Indtast telefonnummer og få et uforpligtende tilbud.<br><br>Vi behandler dit data ordentligt. <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.</div>
+              <div><label for="lead-phone">Telefon</label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="88 88 88 88" required autocomplete="tel"></div>
+              <div class="hint">Indtast telefonnummer og få et uforpligtende tilbud.<br><br>Vi behandler din data ordentligt. <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.</div>
               <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
               <div id="thanks-card" class="thanks-card" hidden>
                 <strong>Tak! Vi har modtaget din forespørgsel.</strong>
