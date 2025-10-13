@@ -40,7 +40,7 @@
     "price": 4924.14
   },
   {
-    "label": "Autolakerer",
+    "label": "Autolaker",
     "price": 4924.14
   },
   {
@@ -48,311 +48,471 @@
     "price": 4924.14
   },
   {
-    "label": "Autoværksted",
-    "price": 4924.14
-  },
-  {
-    "label": "Bagermester",
-    "price": 4924.14
-  },
-  {
-    "label": "Bank",
-    "price": 966.26
+    "label": "Bager",
+    "price": 5846.23
   },
   {
     "label": "Bankbetjent",
-    "price": 2228.82
+    "price": 3931.13
   },
   {
-    "label": "Barber",
-    "price": 4924.14
-  },
-  {
-    "label": "Bartender",
-    "price": 2228.82
+    "label": "Basiskemikalier Og Pesticider",
+    "price": 9477.82
   },
   {
     "label": "Bedemand",
+    "price": 3931.13
+  },
+  {
+    "label": "Betonfabrik",
+    "price": 11520.59
+  },
+  {
+    "label": "Bilsynassistent",
+    "price": 2583.47
+  },
+  {
+    "label": "Blikkenslager",
+    "price": 9477.82
+  },
+  {
+    "label": "Bogbinder",
+    "price": 3931.13
+  },
+  {
+    "label": "Broarbejder",
+    "price": 11520.59
+  },
+  {
+    "label": "Brolæggerarbejder",
+    "price": 11520.59
+  },
+  {
+    "label": "Brygger",
+    "price": 5846.23
+  },
+  {
+    "label": "Brøndgraver",
+    "price": 11520.59
+  },
+  {
+    "label": "Buntmager",
+    "price": 3221.83
+  },
+  {
+    "label": "Buschaffør",
+    "price": 10754.56
+  },
+  {
+    "label": "Butiksassistent",
     "price": 2228.82
   },
   {
-    "label": "Bergsvejser",
+    "label": "Børn Og Unge På Døgninstitution",
     "price": 7548.53
-  },
-  {
-    "label": "Betonarbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Bogholder",
-    "price": 966.26
-  },
-  {
-    "label": "Branchearbejder",
-    "price": 7548.53
-  },
-  {
-    "label": "Brolægger",
-    "price": 11520.59
-  },
-  {
-    "label": "Brøndborer",
-    "price": 11520.59
-  },
-  {
-    "label": "Butikschef",
-    "price": 2228.82
-  },
-  {
-    "label": "Byggeleder",
-    "price": 4924.14
-  },
-  {
-    "label": "Bygningskonstruktør",
-    "price": 966.26
   },
   {
     "label": "Børnehavepædagog",
-    "price": 2228.82
+    "price": 5846.23
   },
   {
-    "label": "Børsmægler",
-    "price": 966.26
+    "label": "Campingpladsbestyrer",
+    "price": 5846.23
+  },
+  {
+    "label": "Campingpladsmedarbejder",
+    "price": 5846.23
+  },
+  {
+    "label": "Cement Fabrik",
+    "price": 11520.59
   },
   {
     "label": "Chauffør",
-    "price": 7548.53
+    "price": 10754.56
   },
   {
-    "label": "Cykelmekaniker",
-    "price": 4924.14
+    "label": "Cykelsmed",
+    "price": 3931.13
   },
   {
-    "label": "Danser",
-    "price": 2228.82
-  },
-  {
-    "label": "Depotarbejder",
-    "price": 7548.53
+    "label": "Dagplejer",
+    "price": 9477.82
   },
   {
     "label": "Designer",
     "price": 966.26
   },
   {
+    "label": "Driftleder",
+    "price": 2583.47
+  },
+  {
+    "label": "Driftstekniker",
+    "price": 2086.96
+  },
+  {
+    "label": "Dyrepasser",
+    "price": 9477.82
+  },
+  {
+    "label": "Dyrlæge",
+    "price": 5846.23
+  },
+  {
     "label": "Ejendomsfunktionær",
-    "price": 4924.14
+    "price": 5846.23
+  },
+  {
+    "label": "Ejendomsmægler Med Kørsel",
+    "price": 2086.96
+  },
+  {
+    "label": "Eksportchef Med Kørsel",
+    "price": 2086.96
   },
   {
     "label": "Elektriker",
-    "price": 7548.53
+    "price": 5846.23
   },
   {
-    "label": "Elektriker (byg)",
-    "price": 7548.53
+    "label": "Elektromekaniker",
+    "price": 5846.23
   },
   {
-    "label": "Elektriker (service)",
-    "price": 7548.53
-  },
-  {
-    "label": "Elektronikfagtekniker",
-    "price": 4924.14
-  },
-  {
-    "label": "Elektronikmekaniker",
-    "price": 4924.14
-  },
-  {
-    "label": "Elevator-montør",
-    "price": 7548.53
+    "label": "Elektronikarbejde",
+    "price": 3931.13
   },
   {
     "label": "Entreprenørarbejder",
     "price": 11520.59
   },
   {
-    "label": "Entreprenørmaskinfører",
-    "price": 11520.59
-  },
-  {
     "label": "Ergoterapeut",
-    "price": 2228.82
+    "price": 2086.96
   },
   {
-    "label": "Eventmedarbejder",
-    "price": 2228.82
+    "label": "Fabrikssmed",
+    "price": 7548.53
   },
   {
-    "label": "Fisker",
-    "price": 11520.59
+    "label": "Familiepleje",
+    "price": 9477.82
   },
   {
-    "label": "Gartner (drift)",
+    "label": "Farmaceutiske Råvarer Og Medicinalvarer",
+    "price": 3931.13
+  },
+  {
+    "label": "Fitnesscenter",
+    "price": 2427.43
+  },
+  {
+    "label": "Flyttemand",
+    "price": 9477.82
+  },
+  {
+    "label": "Fodterapeut",
+    "price": 2427.43
+  },
+  {
+    "label": "Fotograf",
+    "price": 2086.96
+  },
+  {
+    "label": "Frisør",
+    "price": 2583.47
+  },
+  {
+    "label": "Fysioterapeut",
+    "price": 2427.43
+  },
+  {
+    "label": "Galvansiør",
+    "price": 7548.53
+  },
+  {
+    "label": "Gas Og Vandmester",
     "price": 9477.82
   },
   {
     "label": "Glarmester",
-    "price": 4924.14
+    "price": 7548.53
   },
   {
-    "label": "Glatbanearbejder",
-    "price": 11520.59
+    "label": "Gravør",
+    "price": 3931.13
+  },
+  {
+    "label": "Greenkeeper",
+    "price": 7548.53
+  },
+  {
+    "label": "Grovsmed",
+    "price": 7548.53
+  },
+  {
+    "label": "Guide",
+    "price": 7548.53
+  },
+  {
+    "label": "Guldsmed",
+    "price": 3221.83
   },
   {
     "label": "Gulvlægger",
     "price": 7548.53
   },
   {
-    "label": "Gulvsliber",
-    "price": 7548.53
-  },
-  {
-    "label": "Have- og parkmedarbejder",
+    "label": "Gummiproduktion",
     "price": 9477.82
   },
   {
-    "label": "Højderengøring",
-    "price": 11520.59
+    "label": "Handicaphjælper",
+    "price": 9477.82
   },
   {
-    "label": "Håndværker (diverse)",
+    "label": "Havbiolog",
+    "price": 2583.47
+  },
+  {
+    "label": "Havnearbejder",
+    "price": 5846.23
+  },
+  {
+    "label": "Hjemmehjælper",
+    "price": 9477.82
+  },
+  {
+    "label": "Hvidevaremekaniker",
+    "price": 3931.13
+  },
+  {
+    "label": "Hård Produktion",
     "price": 7548.53
   },
   {
-    "label": "IT-konsulent",
-    "price": 966.26
+    "label": "Industrilakere/Maler",
+    "price": 7548.53
+  },
+  {
+    "label": "Industrisnedker",
+    "price": 11520.59
   },
   {
     "label": "Industritekniker",
-    "price": 7548.53
+    "price": 3931.13
   },
   {
-    "label": "Journalist",
+    "label": "Ingeniør",
     "price": 966.26
   },
   {
-    "label": "Kloakarbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Kranfører",
-    "price": 11520.59
-  },
-  {
-    "label": "Kreativ leder",
-    "price": 966.26
-  },
-  {
-    "label": "Købmand",
-    "price": 2228.82
-  },
-  {
-    "label": "Landmand",
+    "label": "Isolatør",
     "price": 9477.82
   },
   {
-    "label": "Lastbilchauffør",
-    "price": 7548.53
+    "label": "IT-teknik",
+    "price": 2086.96
   },
   {
-    "label": "Leder (kontor)",
+    "label": "Jord Og Betonarbejde",
+    "price": 11520.59
+  },
+  {
+    "label": "Jordemoder",
+    "price": 2427.43
+  },
+  {
+    "label": "Journalist Med Kørsel",
+    "price": 2086.96
+  },
+  {
+    "label": "Jurist",
     "price": 966.26
   },
   {
-    "label": "Leder (produktion)",
+    "label": "Jurist Med Kørsel",
+    "price": 2086.96
+  },
+  {
+    "label": "Kabelarbejder",
+    "price": 11520.59
+  },
+  {
+    "label": "Kantinebestyrer",
+    "price": 3221.83
+  },
+  {
+    "label": "Kirkegårdsmedarbejder",
+    "price": 5846.23
+  },
+  {
+    "label": "Kiropraktor",
+    "price": 2427.43
+  },
+  {
+    "label": "Klejnsmed",
     "price": 7548.53
+  },
+  {
+    "label": "Kloakarbejde",
+    "price": 11520.59
+  },
+  {
+    "label": "Kok",
+    "price": 3221.83
+  },
+  {
+    "label": "Konsulent Med Kørsel",
+    "price": 2086.96
+  },
+  {
+    "label": "Kontor Administration",
+    "price": 966.26
+  },
+  {
+    "label": "Kontor Med Kørsel",
+    "price": 2086.96
+  },
+  {
+    "label": "Kosmetolog",
+    "price": 2228.82
+  },
+  {
+    "label": "Kranfører",
+    "price": 7548.53
+  },
+  {
+    "label": "Køkkenassistent",
+    "price": 3221.83
+  },
+  {
+    "label": "Køkkenleder",
+    "price": 3221.83
+  },
+  {
+    "label": "Kørelærer",
+    "price": 6555.52
+  },
+  {
+    "label": "Lager Med Truck",
+    "price": 6555.52
+  },
+  {
+    "label": "Lagerarbejder",
+    "price": 4924.14
+  },
+  {
+    "label": "Lagerchef",
+    "price": 4924.14
+  },
+  {
+    "label": "Landmand",
+    "price": 11520.59
+  },
+  {
+    "label": "Ledelse",
+    "price": 966.26
+  },
+  {
+    "label": "Let Produktion",
+    "price": 3931.13
+  },
+  {
+    "label": "Livredder",
+    "price": 7548.53
+  },
+  {
+    "label": "Læge",
+    "price": 2427.43
+  },
+  {
+    "label": "Lærer",
+    "price": 2228.82
   },
   {
     "label": "Låsesmed",
-    "price": 4924.14
+    "price": 5846.23
   },
   {
-    "label": "Malermester",
+    "label": "Maler",
+    "price": 6555.52
+  },
+  {
+    "label": "Massør",
+    "price": 2427.43
+  },
+  {
+    "label": "Metalarbejder",
+    "price": 9477.82
+  },
+  {
+    "label": "Montage",
     "price": 7548.53
   },
   {
-    "label": "Maskintekniker",
-    "price": 7548.53
+    "label": "Omsorgspersonale",
+    "price": 9477.82
   },
   {
-    "label": "Mekaniker",
-    "price": 4924.14
+    "label": "Pakkeri Inkl. Truckkørsel",
+    "price": 6555.52
   },
   {
-    "label": "Montør",
-    "price": 7548.53
+    "label": "Pedel",
+    "price": 3931.13
   },
   {
-    "label": "Murer",
-    "price": 7548.53
-  },
-  {
-    "label": "Nedriver",
-    "price": 11520.59
-  },
-  {
-    "label": "Offshore-arbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Pædagog",
-    "price": 2228.82
-  },
-  {
-    "label": "Parkeringsvagt",
-    "price": 4924.14
-  },
-  {
-    "label": "Pilot",
-    "price": 11520.59
+    "label": "Pizzeria",
+    "price": 3221.83
   },
   {
     "label": "Pladesmed",
-    "price": 7548.53
+    "price": 4924.14
   },
   {
-    "label": "Politi",
-    "price": 11520.59
+    "label": "Psykolog",
+    "price": 2086.96
   },
   {
-    "label": "Procesoperatør",
-    "price": 7548.53
+    "label": "Pædagog",
+    "price": 9477.82
+  },
+  {
+    "label": "Pædagog Medhjælper",
+    "price": 9477.82
+  },
+  {
+    "label": "Pølsemager",
+    "price": 5846.23
   },
   {
     "label": "Receptionist",
-    "price": 2228.82
+    "price": 966.26
   },
   {
-    "label": "Rengøringsassistent",
-    "price": 4924.14
+    "label": "Rengøring",
+    "price": 11520.59
+  },
+  {
+    "label": "Restaurant",
+    "price": 3221.83
   },
   {
     "label": "Revisor",
     "price": 966.26
   },
   {
-    "label": "Rustfri smed",
-    "price": 7548.53
+    "label": "Slagter Detail",
+    "price": 3221.83
   },
   {
-    "label": "Salg/Butik",
-    "price": 2228.82
+    "label": "Slagter Slagteri",
+    "price": 18171.18
   },
   {
-    "label": "Servicetekniker",
-    "price": 7548.53
-  },
-  {
-    "label": "Skibsværftsarbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Skorstensfejer",
-    "price": 11520.59
-  },
-  {
-    "label": "Slagter",
+    "label": "Smed",
     "price": 7548.53
   },
   {
@@ -360,32 +520,12 @@
     "price": 7548.53
   },
   {
-    "label": "Smed",
+    "label": "Socialpædagog",
+    "price": 9477.82
+  },
+  {
+    "label": "Svejser",
     "price": 7548.53
-  },
-  {
-    "label": "Social- og sundhedsassistent",
-    "price": 2228.82
-  },
-  {
-    "label": "Specialarbejder",
-    "price": 7548.53
-  },
-  {
-    "label": "Stilladsarbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Svejsning (hård)",
-    "price": 11520.59
-  },
-  {
-    "label": "Svejsning (let)",
-    "price": 7548.53
-  },
-  {
-    "label": "Sygeplejerske",
-    "price": 2228.82
   },
   {
     "label": "Tagdækker",
@@ -393,78 +533,38 @@
   },
   {
     "label": "Tandlæge",
-    "price": 5846.23
-  },
-  {
-    "label": "Tandplejer",
-    "price": 5846.23
-  },
-  {
-    "label": "Tandtekniker",
-    "price": 5846.23
-  },
-  {
-    "label": "Taxachauffør",
-    "price": 7548.53
-  },
-  {
-    "label": "Teamleder (kontor)",
-    "price": 966.26
-  },
-  {
-    "label": "Teamleder (produktion)",
-    "price": 7548.53
+    "price": 2427.43
   },
   {
     "label": "Tjener",
-    "price": 2228.82
+    "price": 3221.83
   },
   {
     "label": "Tømrer",
-    "price": 7548.53
-  },
-  {
-    "label": "Udvikler",
-    "price": 966.26
+    "price": 11520.59
   },
   {
     "label": "Vagt",
-    "price": 4924.14
+    "price": 18171.18
   },
   {
-    "label": "Vand- og kloak",
+    "label": "Vicevært",
+    "price": 5846.23
+  },
+  {
+    "label": "Vinduespoler",
     "price": 11520.59
-  },
-  {
-    "label": "Vej- og broarbejder",
-    "price": 11520.59
-  },
-  {
-    "label": "Vindmølletekniker",
-    "price": 11520.59
-  },
-  {
-    "label": "Vinduespudser",
-    "price": 4924.14
-  },
-  {
-    "label": "VVS (byg)",
-    "price": 7548.53
-  },
-  {
-    "label": "VVS (service)",
-    "price": 7548.53
-  },
-  {
-    "label": "VVS-montør",
-    "price": 7548.53
   },
   {
     "label": "Vognmand",
     "price": 10754.56
   },
   {
-    "label": "Webshop",
-    "price": 966.26
+    "label": "VVS-installatør",
+    "price": 9477.82
+  },
+  {
+    "label": "Værkfører",
+    "price": 4924.14
   }
 ]
