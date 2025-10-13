@@ -111,7 +111,7 @@
 
   function makeCombo(host, idx){
     host.className='combobox';
-    host.innerHTML = '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">\\n<div class="combo-list" role="listbox"></div>';
+    host.innerHTML = '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">n<div class="combo-list" role="listbox"></div>';
     const input = host.querySelector('input'), list = host.querySelector('.combo-list');
     let opts = POS; let open=false, cursor=-1;
     const openList=()=>{ list.style.display='block'; input.setAttribute('aria-expanded','true'); open=true; };
