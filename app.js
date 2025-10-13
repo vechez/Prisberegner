@@ -1,4 +1,4 @@
-// FForsikring Arbejdsskade – Netlify micro-app (v2 fix: no '\n' literal; full positions list loaded from JSON)
+// FForsikring Arbejdsskade – Netlify micro-app (v3: fix regex escaping + robust DK phone normalize + CVR clean)
 (function(){
   function postHeight(){
     const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
@@ -75,12 +75,20 @@
 
   const state = { step:1, cvr:'', virk:null, antal:1, roles:[], total:0 };
   const money = (n)=> (n||0).toLocaleString('da-DK',{minimumFractionDigits:0}) + ' kr.';
-  const cleanCVR = (v)=> String(v||'').replace(/\\D+/g,'').slice(0,8);
+
+  // FIX: tidligere stod der /\\D+/ som matcher en backslash + D; nu korrekt \D
+  const cleanCVR = (v)=> String(v||'').replace(/\D+/g,'').slice(0,8);
+
   const debounce = (fn,ms=400)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
 
+  // Roller indlæsning
   let POS=[];
-  fetch('positions.json').then(r=>r.json()).then(d=>{ POS = (d||[]).sort((a,b)=> a.label.localeCompare(b.label,'da')); init(); }).catch(()=>{ POS=[]; init(); });
+  fetch('positions.json')
+    .then(r=>r.json())
+    .then(d=>{ POS = (d||[]).sort((a,b)=> a.label.localeCompare(b.label,'da')); init(); })
+    .catch(()=>{ POS=[]; init(); });
 
+  // Hent VIRK-data via Netlify function
   async function fetchVirkByCVR(cvr){
     try{
       const r = await fetch('/.netlify/functions/cvr?cvr='+encodeURIComponent(cvr));
@@ -151,6 +159,15 @@
     postHeight();
   }
 
+  // Robust DK-telefon normalisering
+  function normalizeDkPhone(input){
+    if(!input) return "";
+    let digits = String(input).replace(/[^\d]/g, ''); // fjern alt ikke-cifret
+    if (digits.startsWith('0045')) digits = digits.slice(4);
+    else if (digits.startsWith('45')) digits = digits.slice(2);
+    return digits;
+  }
+
   function init(){
     function setStepSafe(n){
       const bridge = document.getElementById('bridge');
@@ -181,27 +198,53 @@
         postHeight();
       }
     }, 450);
-    cvrInput.addEventListener('input', e => { const val = cleanCVR(e.target.value); e.target.value = val; handleCVRInput(val); });
+    cvrInput.addEventListener('input', e => {
+      const val = cleanCVR(e.target.value);
+      e.target.value = val;
+      handleCVRInput(val);
+    });
 
-    next1.addEventListener('click', ()=>{ const val = cleanCVR(cvrInput.value); if(val.length!==8){ alert('Udfyld et gyldigt CVR-nummer.'); return; } setStep(2); antalEl.focus(); postHeight(); });
+    next1.addEventListener('click', ()=>{
+      const val = cleanCVR(cvrInput.value);
+      if(val.length!==8){ alert('Udfyld et gyldigt CVR-nummer.'); return; }
+      setStep(2); antalEl.focus(); postHeight();
+    });
+
     antalEl.addEventListener('change', renderRoleSelectors);
     renderRoleSelectors();
+
     back2 && (back2.onclick = ()=> setStep(1));
-    next2 && (next2.onclick = ()=>{ const byLabel = new Map(POS.map(o=>[o.label,o.price])); const bad = state.roles.findIndex(r => !byLabel.has(r)); if (bad !== -1){ alert('Vælg en gyldig stilling for medarbejder ' + (bad+1)); return; } calculateTotal(); setStepSafe(3); });
+
+    next2 && (next2.onclick = ()=>{
+      const byLabel = new Map(POS.map(o=>[o.label,o.price]));
+      const bad = state.roles.findIndex(r => !byLabel.has(r));
+      if (bad !== -1){ alert('Vælg en gyldig stilling for medarbejder ' + (bad+1)); return; }
+      calculateTotal(); setStepSafe(3);
+    });
+
     back3 && (back3.onclick = ()=> setStep(2));
 
     function handleSubmit(){
-      const phone = document.getElementById('lead-phone').value.trim();
-      if(!/^\\d{8}$/.test(phone.replace(/\\D+/g,''))){ alert('Skriv et dansk telefonnummer på 8 cifre.'); return; }
-      if(!/^\\d{8}$/.test(cleanCVR(cvrInput.value))){ alert('Udfyld gyldigt CVR-nummer.'); return; }
+      const phoneEl = document.getElementById('lead-phone');
+      const normalizedPhone = normalizeDkPhone(phoneEl?.value || "");
+      if (normalizedPhone.length !== 8){
+        alert('Skriv et dansk telefonnummer på 8 cifre.');
+        phoneEl && phoneEl.focus();
+        return;
+      }
+      // skriv renset værdi tilbage i input
+      if (phoneEl) phoneEl.value = normalizedPhone;
+
+      const validCVR = cleanCVR(cvrInput.value);
+      if(validCVR.length !== 8){ alert('Udfyld gyldigt CVR-nummer.'); return; }
 
       const urlp = new URLSearchParams(location.search);
       const payload = {
-        cvr: state.cvr,
+        cvr: state.cvr || validCVR,
         virk: state.virk || {},
         roles: state.roles,
         total: state.total,
-        phone,
+        phone: normalizedPhone,
         page: location.href,
         referrer: document.referrer || '',
         utm_source: urlp.get('utm_source')||'',
@@ -219,7 +262,7 @@
       const btn = document.getElementById('submit');
       btn.classList.add('success','pulse');
       btn.setAttribute('disabled','true');
-      document.getElementById('lead-phone').setAttribute('disabled','true');
+      phoneEl.setAttribute('disabled','true');
       document.getElementById('thanks-card').hidden=false;
 
       try{ window.dataLayer = window.dataLayer||[]; window.dataLayer.push({event:'lead_submitted', value: state.total}); }catch(e){}
