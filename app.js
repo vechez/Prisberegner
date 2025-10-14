@@ -16,10 +16,7 @@
   const root = document.createElement("div");
   root.className = "wrap";
   root.innerHTML = `
-    <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
-      <div class="hdr">
-  <img class="brand" src="logo.png" alt="Fælles Forsikring" loading="lazy">
-  <h2 class="title">Arbejdsskade - prisberegner</h2>
+    <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - Beregn pris</h2></div>
 </div>
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
