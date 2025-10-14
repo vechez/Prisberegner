@@ -53,7 +53,25 @@
         <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
-            <!-- Pris / breakdown -->
+            <!-- ASIDE FØRST for mobil (kontakt før pris) -->
+            <aside class="grid">
+              <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
+              <div>
+                <label for="lead-phone">Indtast telefonnummer</label>
+                <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
+              </div>
+              <div class="disclaimer">
+                Vi behandler din data ordentligt.
+                <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
+              </div>
+              <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
+              <div id="thanks-card" class="thanks-card" hidden>
+                <strong>Tak! Vi har modtaget din forespørgsel.</strong>
+                <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
+              </div>
+            </aside>
+
+            <!-- PRIS-DEL -->
             <div class="grid">
               <div class="kicker">Beregnet pris</div>
               <div id="breakdown" class="grid"></div>
@@ -66,24 +84,6 @@
               </div>
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
-
-            <!-- Telefon / lead -->
-            <aside class="grid">
-              <h3 class="side-heading">Lyder det interessant? Så indtast dit telefonnummer</h3>
-              <div>
-                <label for="lead-phone">Indtast telefonnummer</label>
-                <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
-              </div>
-              <div class="hint">
-                Vi behandler din data ordentligt.
-                <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
-              </div>
-              <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
-              <div id="thanks-card" class="thanks-card" hidden>
-                <strong>Tak! Vi har modtaget din forespørgsel.</strong>
-                <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
-              </div>
-            </aside>
           </div>
         </section>
       </div>
@@ -132,28 +132,6 @@
     } catch { return null; }
   }
 
-  /* ---------- Collapsible disclaimer (kan foldes ud/ind) ---------- */
-  function enhanceDisclaimer(){
-    const el = $("#price-disclaimer");
-    if (!el || el.dataset.enhanced) return;
-    el.dataset.enhanced = "1";
-    const content = el.innerHTML;
-    el.innerHTML = `
-      <div class="collapsible" aria-expanded="false">
-        <span data-toggle>Læs vilkår</span>
-        <div data-body>${content}</div>
-      </div>
-    `;
-    const wrap = el.querySelector(".collapsible");
-    const toggle = el.querySelector("[data-toggle]");
-    toggle.addEventListener("click", ()=>{
-      const open = wrap.getAttribute("aria-expanded")==="true";
-      wrap.setAttribute("aria-expanded", String(!open));
-      toggle.textContent = open ? "Læs vilkår" : "Skjul vilkår";
-      postHeight();
-    });
-  }
-
   /* ---------- steps ---------- */
   function setStep(n) {
     state.step = n;
@@ -167,7 +145,6 @@
       sticky?.classList.add("show");
       sticky?.setAttribute("aria-hidden", "false");
       root.style.paddingBottom = "calc(88px + env(safe-area-inset-bottom, 0px))";
-      enhanceDisclaimer();
     } else {
       sticky?.classList.remove("show");
       sticky?.setAttribute("aria-hidden", "true");
@@ -262,8 +239,8 @@
         el.addEventListener("touchend", (e) => {
           if (!touching) return;
           touching = false;
-          if (moved) { moved = false; return; }
-          e.preventDefault();  // stop syntetisk click
+          if (moved) { moved = false; return; }   // scroll → intet valg
+          e.preventDefault();                      // stop syntetisk click
           input.value = o.label;
           state.roles[idx] = o.label;
           input.blur();
@@ -274,7 +251,7 @@
 
         /* DESKTOP: klik */
         el.addEventListener("mousedown", (e) => {
-          if (touching) return;
+          if (touching) return; // ignorér hvis dette kommer efter touch
           e.preventDefault();
           input.value = o.label;
           state.roles[idx] = o.label;
@@ -355,12 +332,12 @@
         `<div class="role-card">
            <div class="idx">${i + 1}</div>
            <div>${r || "—"}</div>
-           <div class="price-pill">${(p||0).toLocaleString("da-DK")} kr.</div>
+           <div class="price-pill">${money(p)}</div>
          </div>`);
     });
     state.total = Math.round(sum);
-    $("#total").textContent = (state.total||0).toLocaleString("da-DK") + " kr.";
-    $("#sticky-total").textContent = (state.total||0).toLocaleString("da-DK") + " kr.";
+    $("#total").textContent = money(state.total);
+    $("#sticky-total").textContent = money(state.total);
     postHeight();
   }
 
@@ -474,11 +451,10 @@
       postHeight();
     }
 
-    const submitBtn = $("#submit");
     submitBtn?.addEventListener("click", handleSubmit);
 
     // Sticky CTA: fokusér telefonfelt hvis tomt – ellers send
-    $("#sticky-cta-btn")?.addEventListener("click", () => {
+    stickyBtn?.addEventListener("click", () => {
       const phoneEl = $("#lead-phone");
       const digits = (phoneEl?.value || "").replace(/\D/g, "");
       if (!phoneEl || digits.length < 8) {
