@@ -78,3 +78,18 @@ input[type="text"],input[type="tel"],select{width:100%;padding:12px;border:1px s
   width: auto;
   object-fit: contain;
 }
+.trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-weight: 600;
+  color: #0C1E21;
+}
+.trust-logo {
+  height: 22px;
+  width: auto;
+}
+.trust-text {
+  font-size: 0.95rem;
+}
