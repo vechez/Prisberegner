@@ -65,7 +65,7 @@
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
             <aside class="grid">
-              <div class="hint">Kunne du tænke dig at høre mere? Så indtast dit telefonnummer, og vi kontakter dig med et tilbud baseret på dine valg.</div>
+              <div class="hint">Bliv kontaktet med et tilbud. Indtast dit telefonnummer, så ringer en rådgiver dig op med en pris baseret på dine valg.</div>
               <div><label for="lead-phone">Telefon</label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="88 88 88 88" required autocomplete="tel"></div>
               <div class="hint">Indtast telefonnummer og få et uforpligtende tilbud.<br><br>Vi behandler din data ordentligt. <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.</div>
               <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
@@ -132,7 +132,6 @@
     });
 
   /* -------- Cloudflare function: /api/cvr -------- */
-  // Kvote-håndtering: returnerer {kvote:true} ved 429
   async function fetchVirkByCVR(cvr) {
     try {
       const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
@@ -163,6 +162,7 @@
     postHeight();
   }
 
+  // ====== FIXET COMBOBOX / DROPDOWN ======
   function makeCombo(host, idx) {
     host.className = "combobox";
     host.innerHTML =
@@ -170,11 +170,13 @@
       '<div class="combo-list" role="listbox"></div>';
 
     const input = host.querySelector("input");
-    const list = host.querySelector(".combo-list");
+    const list  = host.querySelector(".combo-list");
+
     let opts = POS;
     let open = false, cursor = -1;
 
     const openList = () => {
+      if (!opts || !opts.length) return;
       list.style.display = "block";
       input.setAttribute("aria-expanded", "true");
       open = true;
@@ -184,9 +186,10 @@
       input.setAttribute("aria-expanded", "false");
       open = false; cursor = -1;
     };
+
     const render = (items) => {
       list.innerHTML = "";
-      items.slice(0, 300).forEach((o, i) => {
+      (items || []).slice(0, 300).forEach((o, i) => {
         const el = document.createElement("div");
         el.className = "combo-opt";
         el.setAttribute("role", "option");
@@ -200,24 +203,33 @@
         list.appendChild(el);
       });
     };
+
     const filter = (q) => {
-      const s = (q || "").toLowerCase();
-      opts = POS.filter((o) => o.label.toLowerCase().includes(s));
+      const s = (q || "").toLowerCase().trim();
+      // tom søgning → vis alle (op til 300)
+      opts = !s ? POS : POS.filter((o) => o.label.toLowerCase().includes(s));
       render(opts);
-      if (opts.length) openList(); else closeList();
+      opts.length ? openList() : closeList();
     };
 
+    // Åbn på input + focus + click
     input.addEventListener("input", (e) => filter(e.target.value));
     input.addEventListener("focus", () => filter(input.value));
+    input.addEventListener("click",  () => filter(input.value));
+
+    // Tastatur navigation
     input.addEventListener("keydown", (e) => {
-      if (!open && ["ArrowDown", "Enter"].includes(e.key)) {
-        filter(input.value); return;
+      if (!open && (e.key === "ArrowDown" || e.key === "Enter")) {
+        filter(input.value);
+        return;
       }
       if (e.key === "Escape") { closeList(); return; }
       if (!open) return;
-      if (e.key === "ArrowDown") { cursor = Math.min(cursor + 1, opts.length - 1); render(opts); }
-      else if (e.key === "ArrowUp") { cursor = Math.max(cursor - 1, 0); render(opts); }
-      else if (e.key === "Enter") {
+      if (e.key === "ArrowDown") {
+        cursor = Math.min(cursor + 1, opts.length - 1); render(opts);
+      } else if (e.key === "ArrowUp") {
+        cursor = Math.max(cursor - 1, 0); render(opts);
+      } else if (e.key === "Enter") {
         if (opts[cursor]) {
           input.value = opts[cursor].label;
           state.roles[idx] = opts[cursor].label;
@@ -226,10 +238,12 @@
       }
     });
 
+    // Luk når man klikker udenfor
     document.addEventListener("click", (e) => {
       if (!host.contains(e.target)) closeList();
     }, { passive: true });
   }
+  // ====== /combobox ======
 
   function renderRoleSelectors() {
     const sel = $("#antal");
@@ -425,7 +439,6 @@
         ts: Date.now(),
       };
 
-      // NOTE: Lav evt. en Cloudflare function til lead: /functions/api/lead.js
       fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
