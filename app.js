@@ -154,7 +154,7 @@
     window.scrollTo({top:0, behavior:"smooth"});
 
     // Mobil: skjul disclaimer bag "Læs mere …"
-    if(n===3 && isMobile()){
+    if(n === 3( {
       setupMobileDisclaimerToggle();  // sikrer knap + skjul
     }
     postHeight();
