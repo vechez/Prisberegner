@@ -2,7 +2,7 @@
   /* --------------------------------------------
    * Konfiguration
    * ------------------------------------------ */
-  const THINK_MS = 800; // ventetid fra step 2 -> 3 (“beregner pris…”)
+  const THINK_MS = 1250; // ventetid fra step 2 -> 3 (“beregner pris…”)
 
   /* --------------------------------------------
    * Height-posting til Webflow (smooth + debounced)
