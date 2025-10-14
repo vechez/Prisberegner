@@ -65,7 +65,6 @@
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
 
-              <!-- Pris-disclaimer (collapsible på mobil, normal på desktop) -->
               <div id="price-disclaimer" class="disclaimer">
                 Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
@@ -73,7 +72,8 @@
 
             <!-- KONTAKT (højre desktop / under pris mobil) -->
             <aside class="col-aside">
-              <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
+              <!-- OVERSKRIFT -> FELT -> PRIVACY -> CTA (orden låses i CSS) -->
+              <h3 class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</h3>
 
               <div class="phone-field">
                 <label for="lead-phone">Indtast telefonnummer</label>
@@ -85,7 +85,6 @@
                 <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
               </div>
 
-              <!-- CTA SKAL LIGGE LIGE UNDER TELEFONFELTET -->
               <div class="actions cta-area">
                 <button id="submit" class="btn">Bliv kontaktet af en rådgiver</button>
               </div>
@@ -97,7 +96,7 @@
             </aside>
           </div>
 
-          <!-- Tilbage-knap (vises på både desktop og mobil, fullwidth på mobil) -->
+          <!-- Tilbage-knap (vises på både desktop og mobil; nederst på mobil) -->
           <div class="actions back-row">
             <button id="back3" class="btn secondary">Tilbage</button>
           </div>
@@ -151,7 +150,7 @@
     $$(".pane").forEach(el=>el.hidden=(+el.dataset.step!==n));
     window.scrollTo({top:0, behavior:"smooth"});
 
-    // Pris-disclaimer: kun collapsible på mobil
+    // Pris-disclaimer collapsible kun på mobil
     const d = $("#price-disclaimer");
     if(d){
       if(isMobile()){
@@ -159,7 +158,7 @@
         ensureDisclaimerToggle();
       }else{
         d.classList.remove("collapsible","expanded");
-        const t=$("#price-disclaimer-toggle"); if(t) t.remove();
+        $("#price-disclaimer-toggle")?.remove();
       }
     }
     postHeight();
