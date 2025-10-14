@@ -10,8 +10,7 @@ export async function onRequest({ request }) {
       'content-type': 'application/json; charset=utf-8',
       'access-control-allow-origin': '*'
     };
-    if (cacheSeconds > 0) headers['cache-control'] = `public, max-age=${cacheSeconds}`;
-    else headers['cache-control'] = 'no-store';
+    headers['cache-control'] = cacheSeconds > 0 ? `public, max-age=${cacheSeconds}` : 'no-store';
     return new Response(JSON.stringify(obj, null, 2), { status, headers });
   };
 
@@ -55,25 +54,32 @@ export async function onRequest({ request }) {
     if (!r.ok || (raw && raw.error)) {
       const quota = raw && typeof raw === 'object' && (raw.error + '').toUpperCase().includes('QUOTA');
       const resp = json(
-        {
-          error: quota ? 'quota_exceeded' : 'upstream_error',
-          status: r.status,
-          raw
-        },
+        { error: quota ? 'quota_exceeded' : 'upstream_error', status: r.status, raw },
         quota ? 429 : 502,
         quota ? 600 : 0 // 10 min negativ cache ved kvote
       );
-      // læg i cache så vi ikke spammer upstream
       waitUntilSafe(cache.put(cacheKey, resp.clone()));
       return resp;
     }
 
     if (!isJson || !raw || typeof raw !== 'object') {
-      const resp = json({ error: 'not_json', raw }, 502);
-      return resp;
+      return json({ error: 'not_json', raw }, 502);
     }
 
-    // Normaliser felter
+    // --- Robust udtræk af antal ansatte ---
+    let employees = null;
+    if (typeof raw.employees === 'number') {
+      employees = raw.employees;
+    } else if (Array.isArray(raw.employees) && raw.employees.length) {
+      // vælg seneste år hvis array-objekter [{year, employees}, ...]
+      const last = raw.employees[raw.employees.length - 1];
+      employees = typeof last?.employees === 'number' ? last.employees : null;
+    } else if (raw.employeesYear && !isNaN(+raw.employeesYear)) {
+      employees = +raw.employeesYear;
+    } else if (raw.antal_ansatte && !isNaN(+raw.antal_ansatte)) {
+      employees = +raw.antal_ansatte;
+    }
+
     const payload = {
       cvr: raw.cvr ?? raw.vat ?? null,
       name: raw.name ?? raw.virksomhedsnavn ?? null,
@@ -82,10 +88,8 @@ export async function onRequest({ request }) {
       city: raw.city ?? null,
       industrycode: raw.industrycode ?? raw.main_industrycode ?? null,
       industrydesc: raw.industrydesc ?? raw.main_industrycode_tekst ?? null,
-      employees:
-        typeof raw.employees === 'number'
-          ? raw.employees
-          : (raw.employeesYear ?? raw.antal_ansatte ?? null)
+      employees,           // engelsk nøgle
+      ansatte: employees   // dansk alias til dit frontend (v.ansatte)
     };
 
     const resp = json(payload, 200, 86400); // cache succes i 24h
