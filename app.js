@@ -53,6 +53,7 @@
         <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
+            <!-- Pris / breakdown -->
             <div class="grid">
               <div class="kicker">Beregnet pris</div>
               <div id="breakdown" class="grid"></div>
@@ -65,9 +66,12 @@
               </div>
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
+
+            <!-- Telefon / lead -->
             <aside class="grid">
+              <h3 class="side-heading">Lyder det interessant? Så indtast dit telefonnummer</h3>
               <div>
-                <label for="lead-phone">Lyder det interessant? Så indtast dit telefonnummer</label>
+                <label for="lead-phone">Indtast telefonnummer</label>
                 <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
               </div>
               <div class="hint">
@@ -128,7 +132,7 @@
     } catch { return null; }
   }
 
-  /* ---------- Collapsible disclaimer ---------- */
+  /* ---------- Collapsible disclaimer (kan foldes ud/ind) ---------- */
   function enhanceDisclaimer(){
     const el = $("#price-disclaimer");
     if (!el || el.dataset.enhanced) return;
@@ -258,8 +262,8 @@
         el.addEventListener("touchend", (e) => {
           if (!touching) return;
           touching = false;
-          if (moved) { moved = false; return; }   // scroll → intet valg
-          e.preventDefault();                      // stop syntetisk click
+          if (moved) { moved = false; return; }
+          e.preventDefault();  // stop syntetisk click
           input.value = o.label;
           state.roles[idx] = o.label;
           input.blur();
@@ -270,7 +274,7 @@
 
         /* DESKTOP: klik */
         el.addEventListener("mousedown", (e) => {
-          if (touching) return; // ignorér hvis dette kommer efter touch
+          if (touching) return;
           e.preventDefault();
           input.value = o.label;
           state.roles[idx] = o.label;
@@ -351,12 +355,12 @@
         `<div class="role-card">
            <div class="idx">${i + 1}</div>
            <div>${r || "—"}</div>
-           <div class="price-pill">${money(p)}</div>
+           <div class="price-pill">${(p||0).toLocaleString("da-DK")} kr.</div>
          </div>`);
     });
     state.total = Math.round(sum);
-    $("#total").textContent = money(state.total);
-    $("#sticky-total").textContent = money(state.total);
+    $("#total").textContent = (state.total||0).toLocaleString("da-DK") + " kr.";
+    $("#sticky-total").textContent = (state.total||0).toLocaleString("da-DK") + " kr.";
     postHeight();
   }
 
@@ -470,10 +474,11 @@
       postHeight();
     }
 
+    const submitBtn = $("#submit");
     submitBtn?.addEventListener("click", handleSubmit);
 
     // Sticky CTA: fokusér telefonfelt hvis tomt – ellers send
-    stickyBtn?.addEventListener("click", () => {
+    $("#sticky-cta-btn")?.addEventListener("click", () => {
       const phoneEl = $("#lead-phone");
       const digits = (phoneEl?.value || "").replace(/\D/g, "");
       if (!phoneEl || digits.length < 8) {
