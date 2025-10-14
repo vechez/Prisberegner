@@ -66,3 +66,15 @@ input[type="text"],input[type="tel"],select{width:100%;padding:12px;border:1px s
 @media (max-width:860px){ .sticky-cta.show{display:flex} }
 
 .thanks-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.05);animation:fadeIn .25s ease}
+
+/* --- Brand logo i header --- */
+.hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hdr .brand {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}
