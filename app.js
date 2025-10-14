@@ -44,7 +44,7 @@
                 <select id="antal" name="antal"></select>
               </div>
             </div>
-            <div class="hint">Vælg stilling for hver medarbejder. (Listen viser kun titler)</div>
+            <div class="hint">Vælg stilling for hver medarbejder.</div>
             <div id="roles" class="list"></div>
             <div class="actions"><button id="back2" class="btn secondary">Tilbage</button><button id="next2" class="btn">Se pris</button></div>
           </div>
@@ -60,13 +60,13 @@
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
               <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
+                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
             <aside class="grid">
               <div class="hint">Bliv kontaktet med et tilbud. Indtast dit telefonnummer, så ringer en rådgiver dig op med en pris baseret på dine valg.</div>
-              <div><label for="lead-phone">Telefon</label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="88 88 88 88" required autocomplete="tel"></div>
+              <div><label for="lead-phone">Indtast telefonnummer </label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel"></div>
               <div class="hint">Indtast telefonnummer og få et uforpligtende tilbud.<br><br>Vi behandler din data ordentligt. <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.</div>
               <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
               <div id="thanks-card" class="thanks-card" hidden>
