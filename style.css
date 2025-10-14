@@ -136,3 +136,23 @@ input[type="text"], input[type="tel"], select {
   .sticky-cta.show { display: flex; }  /* kun mobil */
   .combo-list { max-height: 50vh; transform: translateZ(0); }
 }
+/* --- Mobil: kun én CTA (sticky) og strammere layout --- */
+@media (max-width: 860px) {
+  /* Skjul knappen i boksen på mobil – vi bruger sticky bar */
+  aside .actions { display: none; }
+
+  .sticky-cta { gap: 12px; }
+  .sticky-total { font-weight: 800; font-size: 16px; }
+  .sticky-cta .btn { flex: 1; padding: 16px; font-size: 16px; }
+
+  /* Strammere kort */
+  .role-card { padding: 10px 12px; }
+}
+
+/* --- Sammenklappelig disclaimer --- */
+.collapsible { font-size: 13px; color: var(--muted); }
+.collapsible [data-body] { margin-top: 8px; }
+.collapsible[aria-expanded="false"] [data-body] { display: none; }
+.collapsible [data-toggle] {
+  font-weight: 700; text-decoration: underline; cursor: pointer;
+}
