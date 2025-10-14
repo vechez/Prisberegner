@@ -124,15 +124,23 @@ input[type="text"], input[type="tel"], select {
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Collapsible disclaimer */
+/* Disclaimer i småt (altid) */
+.disclaimer { font-size: 13px; color: var(--muted); }
+
+/* Collapsible (bruges kun på mobil) */
 .collapsible { font-size: 13px; color: var(--muted); }
 .collapsible [data-body] { margin-top: 8px; }
 .collapsible[aria-expanded="false"] [data-body] { display: none; }
 .collapsible [data-toggle] { font-weight: 700; text-decoration: underline; cursor: pointer; }
 
+/* Telefon-overskrift */
+.phone-lead-title { font-weight: 800; font-size: 18px; }
+
 /* Mobile */
 @media (max-width: 860px) {
-  .two-col { display: flex; flex-direction: column-reverse; }
+  /* Byt rækkefølge: pris først, telefon bagefter */
+  .two-col { display: flex; flex-direction: column; }
+
   aside.grid { background: #fff; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
 
   /* kun én CTA på mobil: sticky bar */
