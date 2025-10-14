@@ -1,5 +1,5 @@
 (function () {
-  /* ---------- iframe højde til Webflow ---------- */
+  /* ---------- iframe-højde til Webflow ---------- */
   function postHeight() {
     const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
     try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
@@ -13,13 +13,11 @@
   root.innerHTML = `
     <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
       <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
-
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
         <div class="step" data-step="3">3. Se pris</div>
       </div>
-
       <div class="body">
         <!-- Step 1 -->
         <section class="pane" data-step="1">
@@ -55,26 +53,20 @@
         <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
-            <!-- Pris-kolonne (venstre desktop / øverst mobil) -->
+            <!-- PRIS (venstre desktop / øverst mobil) -->
             <div class="grid col-price">
               <div class="kicker">Beregnet pris</div>
               <div id="breakdown" class="grid"></div>
-
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
-
               <div id="price-disclaimer" class="disclaimer">
                 Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
-
-              <div class="mobile-back-fixed">
-                <button id="back3" class="btn secondary">Tilbage</button>
-              </div>
             </div>
 
-            <!-- Kontakt-kolonne (højre desktop / under pris mobil) -->
+            <!-- KONTAKT (højre desktop / under pris mobil) -->
             <aside class="grid col-aside">
               <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
               <div>
@@ -96,6 +88,17 @@
       </div>
     </div>
 
+    <!-- Sticky CTA (mobil) -->
+    <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
+      <div class="sticky-total">Årlig pris: <strong id="sticky-total">0 kr.</strong></div>
+      <button id="sticky-cta-btn" class="btn">Bliv kontaktet</button>
+    </div>
+
+    <!-- Tilbage-knap UNDER CTA på mobil -->
+    <div class="mobile-back-fixed">
+      <button id="back3" class="btn secondary">Tilbage</button>
+    </div>
+
     <!-- Bridge -->
     <div id="bridge" class="bridge-overlay" aria-hidden="true">
       <div class="bridge-box">
@@ -103,12 +106,6 @@
         <div class="meter"><span></span></div>
         <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
       </div>
-    </div>
-
-    <!-- Sticky CTA (mobil) -->
-    <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
-      <div class="sticky-total">Årlig pris: <strong id="sticky-total">0 kr.</strong></div>
-      <button id="sticky-cta-btn" class="btn">Bliv kontaktet</button>
     </div>
   `;
   document.body.appendChild(root);
@@ -144,21 +141,16 @@
     const el = $("#price-disclaimer");
     if (!el || el.dataset.enhanced) return;
     el.dataset.enhanced = "1";
-
-    // gør den sammenklappelig kun på mobil (CSS styrer max-height)
     el.classList.add("collapsible");
-
     const toggle = document.createElement("button");
     toggle.className = "disclaimer-toggle";
     toggle.type = "button";
     toggle.textContent = "Læs mere";
-
     toggle.addEventListener("click", () => {
       el.classList.toggle("expanded");
       toggle.textContent = el.classList.contains("expanded") ? "Skjul tekst" : "Læs mere";
       postHeight();
     });
-
     el.after(toggle);
   }
 
@@ -168,19 +160,19 @@
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
     $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
     window.scrollTo({ top: 0, behavior: "smooth" });
-    postHeight();
 
     const sticky = $("#sticky-cta");
     if (n === 3 && isMobile()) {
-      sticky?.classList.add("show");
-      sticky?.setAttribute("aria-hidden", "false");
-      root.style.paddingBottom = "calc(88px + env(safe-area-inset-bottom, 0px))";
+      sticky.style.display = "flex";
+      sticky.classList.add("show");
+      sticky.setAttribute("aria-hidden", "false");
       enableMobileDisclaimerToggle();
     } else {
-      sticky?.classList.remove("show");
-      sticky?.setAttribute("aria-hidden", "true");
-      root.style.paddingBottom = "";
+      sticky.classList.remove("show");
+      sticky.style.display = "none";
+      sticky.setAttribute("aria-hidden", "true");
     }
+    postHeight();
   }
 
   /* ---------- combobox (scroll-safe på mobil) ---------- */
@@ -254,33 +246,30 @@
         el.setAttribute("role", "option");
         el.textContent = o.label;
 
-        // TOUCH: vælg kun hvis der ikke er scrollet
+        // TOUCH – vælg kun, hvis der ikke er scrollet
         el.addEventListener("touchstart", (e) => {
           const t = e.changedTouches[0];
           touching = true; moved = false;
           touchStartY = t.clientY; touchStartX = t.clientX;
         }, { passive: true });
-
         el.addEventListener("touchmove", (e) => {
           if (!touching) return;
           const t = e.changedTouches[0];
           if (Math.abs(t.clientY - touchStartY) > 8 || Math.abs(t.clientX - touchStartX) > 8) moved = true;
         }, { passive: true });
-
         el.addEventListener("touchend", (e) => {
           if (!touching) return;
           touching = false;
-          if (moved) { moved = false; return; }    // scroll → intet valg
-          e.preventDefault();                       // stop evt. syntetisk click
+          if (moved) { moved = false; return; }
+          e.preventDefault();
           input.value = o.label;
           state.roles[idx] = o.label;
           input.blur();
           closeList();
         }, { passive: false });
-
         el.addEventListener("touchcancel", () => { touching = false; moved = false; }, { passive: true });
 
-        // DESKTOP: klik
+        // DESKTOP – klik
         el.addEventListener("mousedown", (e) => {
           if (touching) return;
           e.preventDefault();
@@ -379,7 +368,7 @@
     const antalEl    = $("#antal");
     const back2      = $("#back2");
     const next2      = $("#next2");
-    const back3      = $("#back3");
+    const back3Btn   = $("#back3");
     const submitBtn  = $("#submit");
     const stickyBtn  = $("#sticky-cta-btn");
 
@@ -418,7 +407,7 @@
     next1?.addEventListener("click", () => {
       const val = cleanCVR(cvrInput?.value);
       if (val.length !== 8) { alert("Udfyld et gyldigt CVR-nummer."); return; }
-      setStep(2); postHeight();
+      setStep(2);
     });
 
     antalEl?.addEventListener("change", renderRoleSelectors);
@@ -436,7 +425,7 @@
       setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 900);
     });
 
-    back3 && (back3.onclick = () => setStep(2));
+    back3Btn && (back3Btn.onclick = () => setStep(2));
 
     function handleSubmit() {
       const phoneEl = $("#lead-phone");
@@ -473,8 +462,8 @@
 
       const sticky = $("#sticky-cta");
       sticky?.classList.remove("show");
+      sticky.style.display = "none";
       sticky?.setAttribute("aria-hidden", "true");
-      root.style.paddingBottom = "";
 
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
       try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
@@ -484,7 +473,7 @@
 
     submitBtn?.addEventListener("click", handleSubmit);
 
-    // Sticky CTA: fokusér telefonfelt hvis tomt – ellers send
+    // Sticky CTA → hvis tomt felt, fokusér; ellers submit
     stickyBtn?.addEventListener("click", () => {
       const phoneEl = $("#lead-phone");
       const digits = (phoneEl?.value || "").replace(/\D/g, "");
