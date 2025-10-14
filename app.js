@@ -61,7 +61,7 @@
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
               <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris.
+                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
@@ -86,7 +86,7 @@
       </div>
     </div>
 
-    <!-- Bridge (step 2 -> 3) -->
+    <!-- Bridge -->
     <div id="bridge" class="bridge-overlay" aria-hidden="true">
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
@@ -116,6 +116,7 @@
     if (d.startsWith("0045")) d = d.slice(4); else if (d.startsWith("45")) d = d.slice(2);
     return d;
   }
+  const isMobile = () => matchMedia("(max-width:860px)").matches;
 
   /* ---------- data (positions) ---------- */
   let POS = [];
@@ -142,12 +143,10 @@
     postHeight();
 
     const sticky = $("#sticky-cta");
-    if (n === 3) {
+    if (n === 3 && isMobile()) {
       sticky?.classList.add("show");
       sticky?.setAttribute("aria-hidden", "false");
-      if (window.innerWidth <= 860) {
-        root.style.paddingBottom = "calc(88px + env(safe-area-inset-bottom, 0px))";
-      }
+      root.style.paddingBottom = "calc(88px + env(safe-area-inset-bottom, 0px))";
     } else {
       sticky?.classList.remove("show");
       sticky?.setAttribute("aria-hidden", "true");
@@ -155,7 +154,7 @@
     }
   }
 
-  /* ---------- combobox (stabil på iOS) ---------- */
+  /* ---------- combobox (scroll-safe på mobil) ---------- */
   function makeCombo(host, idx) {
     host.className = "combobox";
     host.innerHTML =
@@ -166,19 +165,20 @@
     const list  = host.querySelector(".combo-list");
 
     let opts = POS, open = false, cursor = -1;
-    const isMobile = () => matchMedia("(max-width:860px)").matches;
-    let onMove = null, onVV = null;
+    let ptrId = null, startY = 0, startX = 0, moved = false;
 
     function placeListFixed() {
       if (!isMobile()) return;
       const r = input.getBoundingClientRect();
       const vv = window.visualViewport;
-      const offY = vv ? vv.offsetTop : 0; // iOS keyboard offset
-      list.style.position = "fixed";
-      list.style.left  = r.left + "px";
-      list.style.top   = (r.bottom + 6 - offY) + "px";
-      list.style.width = r.width + "px";
-      list.style.maxWidth = r.width + "px";
+      const offY = vv ? vv.offsetTop : 0;
+      Object.assign(list.style, {
+        position: "fixed",
+        left: r.left + "px",
+        top: (r.bottom + 6 - offY) + "px",
+        width: r.width + "px",
+        maxWidth: r.width + "px"
+      });
     }
     function resetListPos() {
       if (!isMobile()) return;
@@ -188,42 +188,34 @@
       list.style.removeProperty("max-width");
       list.style.position = "fixed";
     }
-
-    const openList = () => {
+    function openList() {
       if (!opts || !opts.length) return;
       list.style.display = "block";
       input.setAttribute("aria-expanded", "true");
       open = true;
       if (isMobile()) {
         placeListFixed();
-        onMove = () => placeListFixed();
-        onVV   = () => placeListFixed();
-        window.addEventListener("scroll", onMove, { passive: true });
-        window.addEventListener("resize", onMove, { passive: true });
-        window.visualViewport?.addEventListener("resize", onVV);
-        window.visualViewport?.addEventListener("scroll", onVV, { passive: true });
+        window.addEventListener("scroll", placeListFixed, { passive: true });
+        window.addEventListener("resize", placeListFixed, { passive: true });
+        window.visualViewport?.addEventListener("resize", placeListFixed);
+        window.visualViewport?.addEventListener("scroll", placeListFixed, { passive: true });
       } else {
         list.style.position = "absolute";
       }
       setTimeout(() => host.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
-    };
-
-    const closeList = () => {
+    }
+    function closeList() {
       list.style.display = "none";
       input.setAttribute("aria-expanded", "false");
       open = false; cursor = -1;
-      if (onMove) {
-        window.removeEventListener("scroll", onMove);
-        window.removeEventListener("resize", onMove);
-        onMove = null;
-      }
-      if (onVV) {
-        window.visualViewport?.removeEventListener("resize", onVV);
-        window.visualViewport?.removeEventListener("scroll", onVV);
-        onVV = null;
+      if (isMobile()) {
+        window.removeEventListener("scroll", placeListFixed);
+        window.removeEventListener("resize", placeListFixed);
+        window.visualViewport?.removeEventListener("resize", placeListFixed);
+        window.visualViewport?.removeEventListener("scroll", placeListFixed);
       }
       resetListPos();
-    };
+    }
 
     const render = (items) => {
       list.innerHTML = "";
@@ -233,15 +225,35 @@
         el.setAttribute("role", "option");
         el.textContent = o.label;
 
-        const choose = (ev) => {
+        // Scroll-safe selection: registrér bevægelse, vælg kun hvis der IKKE er scrollet
+        el.addEventListener("pointerdown", (ev) => {
+          ptrId = ev.pointerId;
+          startY = ev.clientY; startX = ev.clientX; moved = false;
+        }, { passive: true });
+
+        el.addEventListener("pointermove", (ev) => {
+          if (ptrId !== null && ev.pointerId === ptrId) {
+            const dy = Math.abs(ev.clientY - startY);
+            const dx = Math.abs(ev.clientX - startX);
+            if (dy > 8 || dx > 8) moved = true; // threshold
+          }
+        }, { passive: true });
+
+        const commit = (ev) => {
+          if (ptrId !== null && ev.pointerId !== ptrId) return;
+          ptrId = null;
+          if (moved) { moved = false; return; } // bruger scrollede – ikke et valg
           ev.preventDefault();
           input.value = o.label;
           state.roles[idx] = o.label;
-          input.blur(); // luk tastatur på iOS
+          input.blur();
           closeList();
         };
-        el.addEventListener("pointerdown", choose, { passive: false });
-        el.addEventListener("mousedown", choose); // desktop fallback
+        el.addEventListener("pointerup", commit, { passive: false });
+        el.addEventListener("click", (e) => { // fallback for mus
+          if (!moved) { e.preventDefault(); input.value = o.label; state.roles[idx] = o.label; input.blur(); closeList(); }
+          moved = false;
+        });
 
         if (i === cursor) el.setAttribute("aria-selected", "true");
         list.appendChild(el);
@@ -380,8 +392,8 @@
     back2 && (back2.onclick = () => setStep(1));
 
     next2 && (next2.onclick = () => {
-      const by = new Map(POS.map(o => [o.label, o.price]));
-      const bad = state.roles.findIndex(r => !by.has(r));
+      const byLabel = new Map(POS.map(o => [o.label, o.price]));
+      const bad = state.roles.findIndex(r => !byLabel.has(r));
       if (bad !== -1) { alert("Vælg en gyldig stilling for medarbejder " + (bad + 1)); return; }
       calculateTotal();
       const bridge = $("#bridge");
@@ -420,7 +432,6 @@
       fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
         .catch(() => {});
 
-      submitBtn?.classList.add("success");
       submitBtn?.setAttribute("disabled", "true");
       phoneEl?.setAttribute("disabled", "true");
       $("#thanks-card").hidden = false;
@@ -430,12 +441,14 @@
       sticky?.setAttribute("aria-hidden", "true");
       root.style.paddingBottom = "";
 
-      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch (_) {}
-      try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch (_) {}
+      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
+      try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
 
       postHeight();
     }
 
+    const submitBtn = $("#submit");
+    const stickyBtn = $("#sticky-cta-btn");
     submitBtn?.addEventListener("click", handleSubmit);
     stickyBtn?.addEventListener("click", () => submitBtn?.click());
   }
