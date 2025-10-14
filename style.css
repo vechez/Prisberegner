@@ -78,3 +78,26 @@ input[type="text"],input[type="tel"],select{width:100%;padding:12px;border:1px s
   width: auto;
   object-fit: contain;
 }
+/* vigtigst: dropdown må ikke blive klippet væk */
+.card { overflow: visible; }               /* var hidden → gør den visible */
+
+/* sørg for at comboboxen har egen stacking context */
+.combobox { position: relative; z-index: 1; }
+
+/* dropdown-listen skal over alt andet */
+.combo-list {
+  position: absolute;
+  z-index: 9999;                           /* var 50 → højere */
+  left: 0; right: 0; top: calc(100% + 6px);
+  max-height: 240px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  display: none;                           /* åbnes via JS */
+}
+
+/* (valgfrit) gør listepunkter lidt “klikvenlige” */
+.combo-opt { padding: 10px 12px; cursor: pointer; }
+.combo-opt[aria-selected="true"], .combo-opt:hover { background:#f1f5f9; }
