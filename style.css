@@ -90,12 +90,21 @@ input[type="text"],input[type="tel"],select{
 /* Kolonner */
 .two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}
 
-/* Lead/aside – lås rækkefølgen: Overskrift > felt > privacy > CTA */
+/* Lead/aside – rækkefølge: Overskrift > felt > privacy > CTA */
 .col-aside{display:grid;gap:12px;grid-auto-flow:row}
 .lead-title{order:1;font-size:20px;font-weight:900;margin:0}
 .phone-field{order:2}
 .privacy{order:3}
 .cta-area{order:4}
+
+/* CTA samme bredde/højde som telefonfelt (mobil + desktop) */
+.col-aside .cta-area{ width:100%; }
+.col-aside .cta-area .btn{
+  width:100%;
+  display:block;
+  min-height:56px;
+  padding:14px 18px;
+}
 
 /* Disclaimer (desktop synlig som normalt) */
 .disclaimer{font-size:12px;color:var(--muted)}
@@ -113,38 +122,42 @@ input[type="text"],input[type="tel"],select{
 /* Mobil */
 .mobile-only{display:none}
 
+/* *** Knap-placering: Step 1 & 2 – Næste/Se pris til højre *** */
+.pane[data-step="1"] .actions,
+.pane[data-step="2"] .actions{
+  display:flex;
+  align-items:center;
+}
+.pane[data-step="1"] #next1{ margin-left:auto; }
+.pane[data-step="2"] #next2{ margin-left:auto; }
+
 @media (max-width:860px){
   .two-col{grid-template-columns:1fr;gap:16px}
   .item{grid-template-columns:1fr}
 
-  /* CTA: fyld hele bredden på mobil */
-  .cta-area .btn{width:100%}
-
-  /* Mere luft ned til “Tilbage” + diskret tilbage-knap */
+  /* CTA full width (mobil) – allerede sat ovenfor */
   .back-row{margin-top:22px}
   .back-row .btn.secondary{
     width:100%;
     font-size:16px;
     padding:12px 16px;
-    color:#64737a;               /* mere diskret */
+    color:#64737a;
     border-color:#e7eaee;
     background:#fff;
     box-shadow:none;
   }
 
-  /* Pris-disclaimer skjules HELT bag "Læs mere …" (kan foldes ud) */
+  /* Pris-disclaimer skjules bag "Læs mere …" (kan foldes ud) */
   #price-disclaimer{
     max-height:0;
     overflow:hidden;
     transition:max-height .3s ease;
   }
-  #price-disclaimer.expanded{
-    max-height:320px;
-  }
+  #price-disclaimer.expanded{ max-height:320px; }
   .disclaimer-toggle{
     display:inline-block;
     margin-top:8px;
-    color:#6b7280;              /* diskret grå */
+    color:#6b7280;
     font-weight:600;
     font-size:14px;
     background:none;
@@ -161,105 +174,32 @@ input[type="text"],input[type="tel"],select{
 /* MODERNE POP-UP (MODAL) UI */
 /* ========================= */
 
-:root{
-  --overlay: rgba(10, 18, 22, .48);
-}
+:root{ --overlay: rgba(10, 18, 22, .48); }
 
 .ff-modal-backdrop{
-  position: fixed;
-  inset: 0;
-  background: var(--overlay);
-  display: none;                 /* default: skjult */
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 20px;
+  position: fixed; inset: 0; background: var(--overlay);
+  display: none; align-items: center; justify-content: center;
+  z-index: 10000; padding: 20px;
 }
-
-.ff-modal-backdrop[data-open="true"]{
-  display: flex;
-  animation: ff-fade .18s ease-out;
-}
+.ff-modal-backdrop[data-open="true"]{ display:flex; animation: ff-fade .18s ease-out; }
 
 .ff-modal{
-  width: 100%;
-  max-width: 520px;
-  background: var(--card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(0,0,0,.18);
-  overflow: hidden;
-  transform: translateY(8px);
-  animation: ff-slide-up .18s ease-out;
+  width:100%; max-width:520px; background:var(--card); color:var(--text);
+  border:1px solid var(--border); border-radius:16px; box-shadow:0 16px 48px rgba(0,0,0,.18);
+  overflow:hidden; transform:translateY(8px); animation: ff-slide-up .18s ease-out;
 }
+.ff-modal__header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.ff-modal__title{margin:0;font-size:18px;font-weight:800;line-height:1.2}
+.ff-modal__close{border:1px solid var(--border);background:#fff;color:var(--text);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;cursor:pointer}
+.ff-modal__close:hover{background:#f9fafb}
+.ff-modal__close:active{transform:translateY(1px)}
+.ff-modal__body{padding:16px;display:grid;gap:12px;background:#fff;max-height:min(70vh,640px);overflow:auto}
+.ff-modal__actions{display:flex;gap:12px;flex-wrap:wrap;padding:16px;border-top:1px solid var(--border);background:#fff}
+.ff-modal .btn{border:0;border-radius:14px;padding:14px 18px;background:var(--cta);color:#fff;font-weight:800;cursor:pointer;min-height:48px;box-shadow:0 8px 18px rgba(14,164,122,.28);font-size:16px;letter-spacing:.1px}
+.ff-modal .btn.secondary{background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none}
+.ff-modal .btn.full{width:100%}
 
-.ff-modal__header{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
-  background: #fff;
-}
+@keyframes ff-fade{from{opacity:0}to{opacity:1}}
+@keyframes ff-slide-up{from{transform:translateY(10px);opacity:.98}to{transform:translateY(0);opacity:1}}
 
-.ff-modal__title{
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.ff-modal__close{
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--text);
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-.ff-modal__close:hover{ background:#f9fafb }
-.ff-modal__close:active{ transform: translateY(1px) }
-
-.ff-modal__body{
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-  background: #fff;
-  max-height: min(70vh, 640px);
-  overflow: auto;
-}
-
-.ff-modal__actions{
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 16px;
-  border-top: 1px solid var(--border);
-  background:#fff;
-}
-
-.ff-modal .btn{
-  border:0;border-radius:14px;padding:14px 18px;background:var(--cta);color:#fff;font-weight:800;cursor:pointer;
-  min-height:48px;box-shadow:0 8px 18px rgba(14,164,122,.28);font-size:16px;letter-spacing:.1px
-}
-.ff-modal .btn:hover{ filter:brightness(.96) }
-.ff-modal .btn:active{ transform: translateY(1px) }
-.ff-modal .btn.secondary{
-  background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none
-}
-.ff-modal .btn.full{ width:100% }
-
-/* Animationer */
-@keyframes ff-fade{ from{opacity:0} to{opacity:1} }
-@keyframes ff-slide-up{ from{ transform: translateY(10px); opacity:.98 } to{ transform: translateY(0); opacity:1 } }
-
-/* Mobil tweaks */
-@media (max-width: 640px){
-  .ff-modal{ max-width: 100%; border-radius: 16px; }
-  .ff-modal .btn.full{ width:100% }
-}
+@media (max-width:640px){ .ff-modal{max-width:100%;border-radius:16px} .ff-modal .btn.full{width:100%} }
