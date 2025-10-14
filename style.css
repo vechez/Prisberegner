@@ -1,136 +1,107 @@
-:root {
-  --ff: #0C1E21;
-  --bg: #f7f7f8;
-  --card: #fff;
-  --text: #0C1E21;
-  --muted: #5f6b70;
-  --border: #e5e7eb;
-  --cta: #0EA47A;
-  --accent-pill: #E8FBF3;
+:root{
+  --ff:#0C1E21;
+  --bg:#f7f7f8;
+  --card:#fff;
+  --text:#0C1E21;
+  --muted:#5f6b70;
+  --border:#e5e7eb;
+  --cta:#0EA47A;
+  --accent-pill:#E8FBF3;
 }
 
 /* Base */
-* { box-sizing: border-box; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
-html, body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.45; font-size: 16px; }
-.wrap { max-width: 980px; margin: 24px auto; padding: 16px; }
+*{box-sizing:border-box;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+html,body{margin:0;background:var(--bg);color:var(--text);line-height:1.45;font-size:16px}
+.wrap{max-width:980px;margin:24px auto;padding:16px}
 
-/* Card */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  box-shadow: 0 6px 24px rgba(12,30,33,.08);
-  overflow: visible;
-  position: relative;
-}
-.hdr { display: flex; gap: 10px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-.dot { width: 12px; height: 12px; border-radius: 999px; background: var(--ff); }
-.title { margin: 0; font-size: 18px; }
+/* Card / header */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 24px rgba(12,30,33,.08);position:relative}
+.hdr{display:flex;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
+.dot{width:12px;height:12px;border-radius:999px;background:var(--ff)}
+.title{margin:0;font-size:18px}
 
 /* Steps */
-.steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px; }
-.step { font-size: 12px; text-align: center; padding: 8px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); }
-.step.is { border-color: var(--ff); color: var(--ff); font-weight: 700; }
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
+.step{font-size:12px;text-align:center;padding:8px;border:1px dashed var(--border);border-radius:12px;color:var(--muted)}
+.step.is{border-color:var(--ff);color:var(--ff);font-weight:700}
 
-/* Body / layout */
-.body { padding: 16px; background: #fff; }
-.grid { display: grid; gap: 14px; }
-.row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+/* Body */
+.body{padding:16px}
+.grid{display:grid;gap:14px}
+.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 
 /* Form */
-label { font-size: 14px; color: var(--muted); display: block; margin-bottom: 6px; }
-input[type="text"], input[type="tel"], select {
-  width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; min-height: 44px; font-size: 16px; background: #fff;
-}
+label{font-size:14px;color:var(--muted);display:block;margin-bottom:6px}
+input[type="text"],input[type="tel"],select{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;min-height:44px;font-size:16px;background:#fff}
+.hint{font-size:13px;color:var(--muted)}
+.review{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff}
+.review-row{display:flex;gap:8px;align-items:center;font-size:14px;word-break:break-word}
+.review-row strong{min-width:140px;color:#374151}
 
 /* Buttons */
-.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; align-items: flex-start; }
-.btn {
-  border: 0; border-radius: 12px; padding: 12px 16px; background: var(--cta); color: #fff; font-weight: 800; cursor: pointer;
-  min-height: 44px; box-shadow: 0 6px 16px rgba(14,164,122,.25); transition: transform .1s ease, filter .2s ease;
-}
-.btn:hover { filter: brightness(.95); }
-.btn:active { transform: translateY(1px); }
-.btn.secondary { background: #fff; color: var(--text); border: 1px solid var(--border); box-shadow: none; }
-.btn.fullwidth { width: 100%; }
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.btn{border:0;border-radius:12px;padding:12px 16px;background:var(--cta);color:#fff;font-weight:800;cursor:pointer;min-height:44px;box-shadow:0 6px 16px rgba(14,164,122,.25)}
+.btn.secondary{background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none}
+.btn.fullwidth{width:100%}
 
-/* Info / review */
-.hint { font-size: 13px; color: var(--muted); }
-.review { border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fff; }
-.review-row { display: flex; gap: 8px; align-items: center; font-size: 14px; word-break: break-word; }
-.review-row strong { min-width: 140px; color: #374151; }
-.muted { color: var(--muted); }
-
-/* Step 2 list */
-.list { display: grid; gap: 10px; }
-.item {
-  display: grid; grid-template-columns: 1fr minmax(220px,360px); gap: 12px; align-items: center;
-  padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: #fff;
-}
+/* Step 2 – stillinger */
+.list{display:grid;gap:10px}
+.item{display:grid;grid-template-columns:1fr minmax(220px,360px);gap:12px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:12px;background:#fff}
 
 /* Combobox */
-.combobox { position: relative; }
-.combo-input {
-  width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; min-height: 44px; font-size: 16px; background: #fff;
-}
-.combo-list {
-  position: absolute; top: calc(100% + 6px); left: 0; right: 0; max-height: 240px; overflow-y: auto; overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch; touch-action: pan-y;
-  background: #fff; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,.1); display: none; z-index: 1000;
-}
-.combo-opt {
-  padding: 10px 12px; cursor: pointer; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.combo-opt:hover, .combo-opt[aria-selected="true"] { background: #f1f5f9; }
+.combobox{position:relative}
+.combo-input{width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;min-height:44px;font-size:16px}
+.combo-list{position:absolute;top:calc(100% + 6px);left:0;right:0;max-height:240px;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,.1);display:none;z-index:1000;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.combo-opt{padding:10px 12px;cursor:pointer;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.combo-opt:hover,.combo-opt[aria-selected="true"]{background:#f1f5f9}
 
-/* Step 3 price list */
-.role-list { display: grid; gap: 8px; }
-.role-card {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--border);
-  border-radius: 12px; background: #fff;
-}
-.idx { width: 28px; height: 28px; display: grid; place-items: center; background: #f2f4f7; border-radius: 999px; color: #111827; font-weight: 700; }
-.price-pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--accent-pill); color: #065f46; border: 1px solid #c7f0d0; }
+/* Step 3 – pris */
+.role-list{display:grid;gap:8px}
+.role-card{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:12px;background:#fff}
+.idx{width:28px;height:28px;display:grid;place-items:center;background:#f2f4f7;border-radius:999px;color:#111827;font-weight:700}
+.price-pill{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--accent-pill);color:#065f46;border:1px solid #c7f0d0}
 
 /* Total */
-.total {
-  display: grid; grid-template-columns: 1fr auto; align-items: center; background: var(--ff); color: #fff; border-radius: 14px;
-  padding: 12px 16px; margin-top: 8px; gap: 8px;
-}
-.total-label { font-weight: 700; }
-.total-amount { font-weight: 900; font-size: 22px; }
+.total{display:grid;grid-template-columns:1fr auto;align-items:center;background:var(--ff);color:#fff;border-radius:14px;padding:12px 16px;margin-top:8px;gap:8px}
+.total-label{font-weight:700}
+.total-amount{font-weight:900;font-size:22px}
 
-/* Step 3 two columns */
-.two-col {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
+/* Kolonner */
+.two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start}
 
-/* Lead area */
-.lead-title { font-size: 18px; font-weight: 800; }
-.disclaimer { font-size: 12px; color: var(--muted); }
+/* Lead */
+.lead-title{font-size:18px;font-weight:800}
+.disclaimer{font-size:12px;color:var(--muted)}
 
-/* Disclaimer "Læs mere" på mobil */
-.disclaimer.collapsible { overflow: hidden; max-height: 60px; transition: max-height .3s ease; }
-.disclaimer.collapsible.expanded { max-height: 300px; }
-.disclaimer-toggle { display: inline-block; margin-top: 6px; color: var(--cta); font-weight: 800; font-size: 14px; background: none; border: none; cursor: pointer; }
+/* Pris-disclaimer – collapsible kun på mobil */
+.disclaimer.collapsible{display:none} /* default (desktop): ingen “Læs mere”-logik og teksten vises normalt via #price-disclaimer uden class */
+.disclaimer-toggle{display:none}
 
-/* Mobile */
-.mobile-only { display: none; }
+/* Loader/bridge overlay */
+.bridge-overlay{position:fixed;inset:0;background:rgba(255,255,255,.8);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:9999}
+.bridge-overlay.show{display:flex}
+.bridge-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;box-shadow:0 8px 28px rgba(0,0,0,.12);text-align:center;max-width:320px}
+.bridge-title{font-weight:800;margin-bottom:8px}
+.meter{height:6px;background:#eef2f7;border-radius:999px;overflow:hidden;margin-top:6px}
+.meter span{display:block;width:45%;height:100%;background:var(--cta);animation:pulse 1.2s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:translateX(0)}to{transform:translateX(120%)}}
 
-@media (max-width: 860px) {
-  /* Pris først, så kontakt */
-  .two-col { grid-template-columns: 1fr; gap: 14px; }
+/* Mobil */
+.mobile-only{display:none}
 
-  /* CTA lige under prisen – ved at flytte CTA øverst i kontaktkolonnen */
-  .cta-first { order: -1; }         /* bruges på knap-containeren */
+@media (max-width:860px){
+  .two-col{grid-template-columns:1fr;gap:14px}
+  .item{grid-template-columns:1fr}
+  .btn.fullwidth{width:100%}
 
-  /* Kun én tilbage-knap nederst */
-  .mobile-only { display: block; }
+  /* CTA skal ligge under telefonfeltet – ingen sticky */
+  .col-aside .actions.cta-container{order:2;margin-top:6px}
 
-  /* Finjuster spacing */
-  .total { margin-bottom: 6px; }
-  .col-aside .actions { margin-top: 4px; }
+  /* Pris-disclaimer: meget gemt væk + “Læs mere”-knap */
+  #price-disclaimer{font-size:12px}
+  #price-disclaimer.collapsible{display:block;max-height:0;overflow:hidden;transition:max-height .3s ease}
+  #price-disclaimer.collapsible.expanded{max-height:320px}
+  .disclaimer-toggle{display:inline-block;margin-top:6px;color:var(--cta);font-weight:800;font-size:14px;background:none;border:none;cursor:pointer}
+
+  .mobile-only{display:block}
 }
