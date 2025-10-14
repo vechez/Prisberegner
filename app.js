@@ -1,15 +1,15 @@
 (function () {
-  /* ---------- Webflow/iframe højde: throttlet ---------- */
+  /* ---------- Webflow/iframe height (throttled) ---------- */
   let _heightTick = null, _heightTimer = null;
   function safePostHeight() {
-    if (_heightTick) return;                  // saml flere kald i samme frame
+    if (_heightTick) return;
     _heightTick = requestAnimationFrame(() => {
       _heightTick = null;
       if (_heightTimer) clearTimeout(_heightTimer);
-      _heightTimer = setTimeout(() => {       // ekstra debounce (100ms)
+      _heightTimer = setTimeout(() => {
         const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
-      }, 100);
+      }, 140); // relaxed to avoid thrash while building rows
     });
   }
   new ResizeObserver(safePostHeight).observe(document.documentElement);
@@ -117,6 +117,7 @@
   /* ---------- helpers ---------- */
   const $  = (s, el=document) => el.querySelector(s);
   const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+
   const state = { step: 1, cvr: "", virk: null, antal: 1, roles: [], total: 0 };
   const money = (n) => (n || 0).toLocaleString("da-DK") + " kr.";
   const cleanCVR = (v) => String(v || "").replace(/\D+/g, "").slice(0, 8);
@@ -128,9 +129,11 @@
     return d;
   }
 
-  /* ---------- data (stillinger) – lazy load ---------- */
+  /* ---------- data (stillinger) – lazy & cached ---------- */
   let POS = [];
   let posLoaded = false, posLoading = false;
+  let SELECT_TEMPLATE = null; // build options once and clone per row
+
   async function ensurePositions() {
     if (posLoaded || posLoading) return;
     posLoading = true;
@@ -138,13 +141,33 @@
       const r = await fetch("positions.json", { cache: "no-cache" });
       const d = await r.json();
       POS = (d || []).sort((a,b)=>a.label.localeCompare(b.label,"da"));
+      buildSelectTemplate();
       posLoaded = true;
     } catch(_) {
       POS = [];
+      buildSelectTemplate();
       posLoaded = true;
     } finally {
       posLoading = false;
     }
+  }
+
+  function buildSelectTemplate() {
+    const s = document.createElement("select");
+    s.className = "role";
+    const frag = document.createDocumentFragment();
+    for (let i=0;i<POS.length;i++){
+      const o = document.createElement("option");
+      o.value = POS[i].label;
+      o.textContent = POS[i].label;
+      frag.appendChild(o);
+    }
+    s.appendChild(frag);
+    SELECT_TEMPLATE = s;
+  }
+
+  function cloneRoleSelect() {
+    return SELECT_TEMPLATE ? SELECT_TEMPLATE.cloneNode(true) : document.createElement("select");
   }
 
   /* ---------- API ---------- */
@@ -166,10 +189,11 @@
     safePostHeight();
 
     if (n === 2) {
-      // lazy load positions
-      ensurePositions().then(renderRoleSelectors);
+      ensurePositions().then(() => {
+        initStep2Once();
+        syncRoleRows();
+      });
     } else if (n === 3) {
-      // wire toggle efter DOM er synlig
       requestAnimationFrame(wireDisclaimerToggle);
     }
   }
@@ -181,10 +205,8 @@
     const btn  = $("#price-disclaimer-toggle");
     if (!disc || !btn) return;
 
-    // altid reset label (kan være blevet ændret)
     btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-
-    if (toggleWired) return;     // bind kun én gang pr. visning
+    if (toggleWired) return;
     toggleWired = true;
 
     btn.addEventListener("click", () => {
@@ -194,37 +216,76 @@
     }, { passive: true });
   }
 
-  /* ---------- step 2 UI ---------- */
-  function renderRoleSelectors() {
+  /* ---------- Step 2 (fast) ---------- */
+  let antalInitialized = false;
+  function initStep2Once() {
+    if (antalInitialized) return;
+    const sel = $("#antal");
+    if (sel && !sel.children.length) {
+      sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+      sel.value = "1";
+    }
+    sel?.addEventListener("change", syncRoleRows);
+    antalInitialized = true;
+  }
+
+  function syncRoleRows() {
     const sel = $("#antal");
     const container = $("#roles");
     if (!sel || !container) return;
 
-    if (!sel.children.length) {
-      sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
-      sel.value = "1";
+    const target = parseInt(sel.value || "1", 10);
+    state.antal = target;
+
+    if (state.roles.length < target) {
+      state.roles = state.roles.concat(new Array(target - state.roles.length).fill(POS[0]?.label || ""));
+    } else if (state.roles.length > target) {
+      state.roles.length = target;
     }
 
-    container.innerHTML = "";
-    const v = sel.value || "1";
-    state.antal = v === "10+" ? 10 : parseInt(v, 10);
+    const currentRows = container.children.length;
 
-    // init roles (bevar eksisterede hvis samme længde)
-    if (state.roles.length !== state.antal) state.roles = new Array(state.antal).fill(POS[0]?.label || "");
+    // Add missing rows
+    if (currentRows < target) {
+      const frag = document.createDocumentFragment();
+      for (let i=currentRows;i<target;i++){
+        const row = document.createElement("div");
+        row.className = "item";
+        row.setAttribute("data-idx", String(i));
 
-    const frag = document.createDocumentFragment();
-    const options = POS.map(o => `<option value="${o.label}">${o.label}</option>`).join("");
+        const left = document.createElement("div");
+        left.innerHTML = `<strong>Medarbejder ${i + 1}</strong>`;
 
-    for (let i = 0; i < state.antal; i++) {
-      const row = document.createElement("div");
-      row.className = "item";
-      row.innerHTML = `<div><strong>Medarbejder ${i + 1}</strong></div><select class="role">${options}</select>`;
-      const s = row.querySelector("select");
-      s.value = state.roles[i] || s.value;
-      s.onchange = () => { state.roles[i] = s.value; };
-      frag.appendChild(row);
+        const right = document.createElement("div");
+        const select = cloneRoleSelect();
+        select.value = state.roles[i] || POS[0]?.label || "";
+        select.addEventListener("change", (e) => { state.roles[i] = e.target.value; }, { passive: true });
+
+        right.appendChild(select);
+        row.appendChild(left);
+        row.appendChild(right);
+        frag.appendChild(row);
+      }
+      container.appendChild(frag);
     }
-    container.appendChild(frag);
+
+    // Remove extra rows
+    if (currentRows > target) {
+      for (let i=currentRows-1; i>=target; i--){
+        container.removeChild(container.lastElementChild);
+      }
+    }
+
+    // Update existing rows (labels/values only if needed)
+    for (let i=0; i<container.children.length; i++){
+      const row = container.children[i];
+      const label = row.firstElementChild?.querySelector("strong");
+      if (label && label.textContent !== `Medarbejder ${i+1}`) label.textContent = `Medarbejder ${i+1}`;
+      const select = row.querySelector("select.role") || row.querySelector("select");
+      const desired = state.roles[i] || (POS[0]?.label || "");
+      if (select && select.value !== desired) select.value = desired;
+    }
+
     safePostHeight();
   }
 
@@ -240,7 +301,8 @@
     let sum = 0;
     const frag = document.createDocumentFragment();
 
-    state.roles.forEach((r, i) => {
+    for (let i=0;i<state.roles.length;i++){
+      const r = state.roles[i];
       const p = _priceMap.get(r) || 0;
       sum += p;
       const div = document.createElement("div");
@@ -250,11 +312,40 @@
         <div>${r || "—"}</div>
         <div class="price-pill">${(p||0).toLocaleString("da-DK",{minimumFractionDigits:2})} kr.</div>`;
       frag.appendChild(div);
-    });
+    }
 
     list.appendChild(frag);
     state.total = Math.round(sum);
     $("#total").textContent = money(state.total);
+    safePostHeight();
+  }
+
+  /* ---------- API: CVR ---------- */
+  async function fetchVirkByCVRThrottled(val, box) {
+    if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
+    box.textContent = "Henter virksomhedsdata…";
+    const v = await fetchVirkByCVR(val);
+
+    if (v?.kvote) {
+      box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
+      safePostHeight(); return;
+    }
+
+    if (v && (v.navn || v.name || v.cvr)) {
+      state.virk = v; state.cvr = val;
+      const navn = v.navn || v.name || "-";
+      const adresse = v.adresse || v.address || "-";
+      const branche = v.branche || v.industrydesc;
+      const branchekode = v.branchekode || v.industrycode;
+      box.innerHTML =
+        `<div class="review-row"><strong>Virksomhed:</strong> ${navn}</div>
+         <div class="review-row"><strong>CVR:</strong> ${v.cvr || "-"}</div>
+         <div class="review-row"><strong>Adresse:</strong> ${adresse}</div>
+         ${branche ? `<div class="review-row"><strong>Branche:</strong> ${branche}</div>` : ""}
+         ${branchekode ? `<div class="review-row"><strong>Branchekode:</strong> ${branchekode}</div>` : ""}`;
+    } else {
+      box.innerHTML = '<div class="muted">Kunne ikke hente virksomhedsdata (rate limit eller fejl). Vi indhenter det manuelt efterfølgende.</div>';
+    }
     safePostHeight();
   }
 
@@ -270,31 +361,7 @@
 
     const handleCVRInput = debounce(async (val) => {
       const box = $("#virk-box");
-      if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
-      box.textContent = "Henter virksomhedsdata…";
-      const v = await fetchVirkByCVR(val);
-
-      if (v?.kvote) {
-        box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
-        safePostHeight(); return;
-      }
-
-      if (v && (v.navn || v.name || v.cvr)) {
-        state.virk = v; state.cvr = val;
-        const navn = v.navn || v.name || "-";
-        const adresse = v.adresse || v.address || "-";
-        const branche = v.branche || v.industrydesc;
-        const branchekode = v.branchekode || v.industrycode;
-        box.innerHTML =
-          `<div class="review-row"><strong>Virksomhed:</strong> ${navn}</div>
-           <div class="review-row"><strong>CVR:</strong> ${v.cvr || "-"}</div>
-           <div class="review-row"><strong>Adresse:</strong> ${adresse}</div>
-           ${branche ? `<div class="review-row"><strong>Branche:</strong> ${branche}</div>` : ""}
-           ${branchekode ? `<div class="review-row"><strong>Branchekode:</strong> ${branchekode}</div>` : ""}`;
-      } else {
-        box.innerHTML = '<div class="muted">Kunne ikke hente virksomhedsdata (rate limit eller fejl). Vi indhenter det manuelt efterfølgende.</div>';
-      }
-      safePostHeight();
+      fetchVirkByCVRThrottled(val, box);
     }, 450);
 
     cvrInput?.addEventListener("input", (e) => {
@@ -309,11 +376,11 @@
       setStep(2);
     });
 
-    antalEl?.addEventListener("change", renderRoleSelectors);
+    antalEl?.addEventListener("change", syncRoleRows);
     back2 && (back2.onclick = () => setStep(1));
 
     next2 && (next2.onclick = () => {
-      _priceMap = null; // rebuild map næste gang, hvis POS ændres
+      _priceMap = null;
       const byLabel = new Map(POS.map(o => [o.label, o.price]));
       const bad = state.roles.findIndex(r => !byLabel.has(r));
       if (bad !== -1) { alert("Vælg en gyldig stilling for medarbejder " + (bad + 1)); return; }
@@ -322,7 +389,7 @@
 
       const bridge = $("#bridge");
       bridge.classList.add("show");
-      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 200); // kort feedback
+      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 200);
     });
 
     back3 && (back3.onclick = () => setStep(2));
@@ -365,4 +432,11 @@
   }
 
   init();
+
+  /* ---------- Prefetch positions on idle (so Step 2 is instant) ---------- */
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(() => ensurePositions().catch(() => {}));
+  } else {
+    setTimeout(() => ensurePositions().catch(() => {}), 500);
+  }
 })();
