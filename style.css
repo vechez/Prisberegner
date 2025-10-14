@@ -156,3 +156,110 @@ input[type="text"],input[type="tel"],select{
 
   .mobile-only{display:block}
 }
+
+/* ========================= */
+/* MODERNE POP-UP (MODAL) UI */
+/* ========================= */
+
+:root{
+  --overlay: rgba(10, 18, 22, .48);
+}
+
+.ff-modal-backdrop{
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  display: none;                 /* default: skjult */
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+}
+
+.ff-modal-backdrop[data-open="true"]{
+  display: flex;
+  animation: ff-fade .18s ease-out;
+}
+
+.ff-modal{
+  width: 100%;
+  max-width: 520px;
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0,0,0,.18);
+  overflow: hidden;
+  transform: translateY(8px);
+  animation: ff-slide-up .18s ease-out;
+}
+
+.ff-modal__header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: #fff;
+}
+
+.ff-modal__title{
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ff-modal__close{
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.ff-modal__close:hover{ background:#f9fafb }
+.ff-modal__close:active{ transform: translateY(1px) }
+
+.ff-modal__body{
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  background: #fff;
+  max-height: min(70vh, 640px);
+  overflow: auto;
+}
+
+.ff-modal__actions{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  background:#fff;
+}
+
+.ff-modal .btn{
+  border:0;border-radius:14px;padding:14px 18px;background:var(--cta);color:#fff;font-weight:800;cursor:pointer;
+  min-height:48px;box-shadow:0 8px 18px rgba(14,164,122,.28);font-size:16px;letter-spacing:.1px
+}
+.ff-modal .btn:hover{ filter:brightness(.96) }
+.ff-modal .btn:active{ transform: translateY(1px) }
+.ff-modal .btn.secondary{
+  background:#fff;color:var(--text);border:1px solid var(--border);box-shadow:none
+}
+.ff-modal .btn.full{ width:100% }
+
+/* Animationer */
+@keyframes ff-fade{ from{opacity:0} to{opacity:1} }
+@keyframes ff-slide-up{ from{ transform: translateY(10px); opacity:.98 } to{ transform: translateY(0); opacity:1 } }
+
+/* Mobil tweaks */
+@media (max-width: 640px){
+  .ff-modal{ max-width: 100%; border-radius: 16px; }
+  .ff-modal .btn.full{ width:100% }
+}
