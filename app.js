@@ -1,11 +1,19 @@
 (function () {
-  /* ---------- iframe højde til Webflow ---------- */
-  function postHeight() {
-    const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-    try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
+  /* ---------- Webflow/iframe højde: throttlet ---------- */
+  let _heightTick = null, _heightTimer = null;
+  function safePostHeight() {
+    if (_heightTick) return;                  // saml flere kald i samme frame
+    _heightTick = requestAnimationFrame(() => {
+      _heightTick = null;
+      if (_heightTimer) clearTimeout(_heightTimer);
+      _heightTimer = setTimeout(() => {       // ekstra debounce (100ms)
+        const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+        try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
+      }, 100);
+    });
   }
-  new ResizeObserver(postHeight).observe(document.documentElement);
-  window.addEventListener("load", postHeight);
+  new ResizeObserver(safePostHeight).observe(document.documentElement);
+  window.addEventListener("load", safePostHeight);
 
   /* ---------- markup ---------- */
   const root = document.createElement("div");
@@ -65,7 +73,6 @@
               <div id="price-disclaimer" class="disclaimer">
                 Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
-              <!-- Toggle til mobil (vises via CSS kun på mobil) -->
               <button id="price-disclaimer-toggle" class="disclaimer-toggle" type="button">Læs mere …</button>
             </div>
 
@@ -121,12 +128,24 @@
     return d;
   }
 
-  /* ---------- data (positions) ---------- */
+  /* ---------- data (stillinger) – lazy load ---------- */
   let POS = [];
-  fetch("positions.json")
-    .then(r => r.json())
-    .then(d => { POS = (d || []).sort((a, b) => a.label.localeCompare(b.label, "da")); initStep2(); })
-    .catch(() => { POS = []; initStep2(); });
+  let posLoaded = false, posLoading = false;
+  async function ensurePositions() {
+    if (posLoaded || posLoading) return;
+    posLoading = true;
+    try {
+      const r = await fetch("positions.json", { cache: "no-cache" });
+      const d = await r.json();
+      POS = (d || []).sort((a,b)=>a.label.localeCompare(b.label,"da"));
+      posLoaded = true;
+    } catch(_) {
+      POS = [];
+      posLoaded = true;
+    } finally {
+      posLoading = false;
+    }
+  }
 
   /* ---------- API ---------- */
   async function fetchVirkByCVR(cvr) {
@@ -142,41 +161,41 @@
     state.step = n;
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
     $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
-    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(_) {}
-    postHeight();
 
-    // Initialisér Læs-mere knappen på step 3 uanset viewport
-    if (n === 3) {
+    try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(_) {}
+    safePostHeight();
+
+    if (n === 2) {
+      // lazy load positions
+      ensurePositions().then(renderRoleSelectors);
+    } else if (n === 3) {
+      // wire toggle efter DOM er synlig
       requestAnimationFrame(wireDisclaimerToggle);
     }
   }
 
   /* ---------- Læs mere toggle ---------- */
+  let toggleWired = false;
   function wireDisclaimerToggle(){
-    try {
-      const disc = $("#price-disclaimer");
-      if (!disc) return;
-      let btn = $("#price-disclaimer-toggle");
-      if (!btn) {
-        btn = document.createElement("button");
-        btn.id = "price-disclaimer-toggle";
-        btn.className = "disclaimer-toggle";
-        btn.type = "button";
-        btn.textContent = "Læs mere …";
-        disc.insertAdjacentElement("afterend", btn);
-      }
-      // init label
+    const disc = $("#price-disclaimer");
+    const btn  = $("#price-disclaimer-toggle");
+    if (!disc || !btn) return;
+
+    // altid reset label (kan være blevet ændret)
+    btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
+
+    if (toggleWired) return;     // bind kun én gang pr. visning
+    toggleWired = true;
+
+    btn.addEventListener("click", () => {
+      disc.classList.toggle("expanded");
       btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-      btn.onclick = () => {
-        disc.classList.toggle("expanded");
-        btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-        postHeight();
-      };
-    } catch(e){ /* fail-safe */ }
+      safePostHeight();
+    }, { passive: true });
   }
 
   /* ---------- step 2 UI ---------- */
-  function initStep2() {
+  function renderRoleSelectors() {
     const sel = $("#antal");
     const container = $("#roles");
     if (!sel || !container) return;
@@ -185,52 +204,58 @@
       sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
       sel.value = "1";
     }
-    renderRoleSelectors();
-  }
-
-  function renderRoleSelectors() {
-    const sel = $("#antal");
-    const container = $("#roles");
-    if (!sel || !container) return;
 
     container.innerHTML = "";
-    const v = (sel && sel.value) || "1";
+    const v = sel.value || "1";
     state.antal = v === "10+" ? 10 : parseInt(v, 10);
-    state.roles = new Array(state.antal).fill(POS[0]?.label || "");
+
+    // init roles (bevar eksisterede hvis samme længde)
+    if (state.roles.length !== state.antal) state.roles = new Array(state.antal).fill(POS[0]?.label || "");
+
+    const frag = document.createDocumentFragment();
+    const options = POS.map(o => `<option value="${o.label}">${o.label}</option>`).join("");
 
     for (let i = 0; i < state.antal; i++) {
       const row = document.createElement("div");
       row.className = "item";
-      const options = POS.map(o => `<option value="${o.label}">${o.label}</option>`).join("");
       row.innerHTML = `<div><strong>Medarbejder ${i + 1}</strong></div><select class="role">${options}</select>`;
       const s = row.querySelector("select");
       s.value = state.roles[i] || s.value;
-      s.onchange = () => state.roles[i] = s.value;
-      container.appendChild(row);
+      s.onchange = () => { state.roles[i] = s.value; };
+      frag.appendChild(row);
     }
-    postHeight();
+    container.appendChild(frag);
+    safePostHeight();
   }
 
   /* ---------- beregning ---------- */
+  let _priceMap = null;
   function calculateTotal() {
     const list = $("#breakdown");
     list.classList.add("role-list");
     list.innerHTML = "";
+
+    if (!_priceMap) _priceMap = new Map(POS.map(o => [o.label, o.price]));
+
     let sum = 0;
-    const byLabel = new Map(POS.map(o => [o.label, o.price]));
+    const frag = document.createDocumentFragment();
+
     state.roles.forEach((r, i) => {
-      const p = byLabel.get(r) || 0;
+      const p = _priceMap.get(r) || 0;
       sum += p;
-      list.insertAdjacentHTML("beforeend",
-        `<div class="role-card">
-           <div class="idx">${i + 1}</div>
-           <div>${r || "—"}</div>
-           <div class="price-pill">${(p||0).toLocaleString("da-DK",{minimumFractionDigits:2})} kr.</div>
-         </div>`);
+      const div = document.createElement("div");
+      div.className = "role-card";
+      div.innerHTML = `
+        <div class="idx">${i + 1}</div>
+        <div>${r || "—"}</div>
+        <div class="price-pill">${(p||0).toLocaleString("da-DK",{minimumFractionDigits:2})} kr.</div>`;
+      frag.appendChild(div);
     });
+
+    list.appendChild(frag);
     state.total = Math.round(sum);
     $("#total").textContent = money(state.total);
-    postHeight();
+    safePostHeight();
   }
 
   /* ---------- init / events ---------- */
@@ -249,7 +274,10 @@
       box.textContent = "Henter virksomhedsdata…";
       const v = await fetchVirkByCVR(val);
 
-      if (v?.kvote) { box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>'; postHeight(); return; }
+      if (v?.kvote) {
+        box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
+        safePostHeight(); return;
+      }
 
       if (v && (v.navn || v.name || v.cvr)) {
         state.virk = v; state.cvr = val;
@@ -257,7 +285,7 @@
         const adresse = v.adresse || v.address || "-";
         const branche = v.branche || v.industrydesc;
         const branchekode = v.branchekode || v.industrycode;
-        $("#virk-box").innerHTML =
+        box.innerHTML =
           `<div class="review-row"><strong>Virksomhed:</strong> ${navn}</div>
            <div class="review-row"><strong>CVR:</strong> ${v.cvr || "-"}</div>
            <div class="review-row"><strong>Adresse:</strong> ${adresse}</div>
@@ -266,7 +294,7 @@
       } else {
         box.innerHTML = '<div class="muted">Kunne ikke hente virksomhedsdata (rate limit eller fejl). Vi indhenter det manuelt efterfølgende.</div>';
       }
-      postHeight();
+      safePostHeight();
     }, 450);
 
     cvrInput?.addEventListener("input", (e) => {
@@ -278,21 +306,23 @@
     next1?.addEventListener("click", () => {
       const val = cleanCVR(cvrInput?.value);
       if (val.length !== 8) { alert("Udfyld et gyldigt CVR-nummer."); return; }
-      setStep(2); postHeight();
+      setStep(2);
     });
 
     antalEl?.addEventListener("change", renderRoleSelectors);
-
     back2 && (back2.onclick = () => setStep(1));
 
     next2 && (next2.onclick = () => {
+      _priceMap = null; // rebuild map næste gang, hvis POS ændres
       const byLabel = new Map(POS.map(o => [o.label, o.price]));
       const bad = state.roles.findIndex(r => !byLabel.has(r));
       if (bad !== -1) { alert("Vælg en gyldig stilling for medarbejder " + (bad + 1)); return; }
+
       calculateTotal();
+
       const bridge = $("#bridge");
       bridge.classList.add("show");
-      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 700);
+      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 200); // kort feedback
     });
 
     back3 && (back3.onclick = () => setStep(2));
@@ -330,7 +360,7 @@
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
       try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
 
-      postHeight();
+      safePostHeight();
     });
   }
 
