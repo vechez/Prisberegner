@@ -1,5 +1,5 @@
 (function () {
-  /* ---------- iframe-højde til Webflow ---------- */
+  /* ---------- iframe højde til Webflow ---------- */
   function postHeight() {
     const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
     try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
@@ -13,11 +13,13 @@
   root.innerHTML = `
     <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
       <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
+
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
         <div class="step" data-step="3">3. Se pris</div>
       </div>
+
       <div class="body">
         <!-- Step 1 -->
         <section class="pane" data-step="1">
@@ -56,11 +58,13 @@
             <!-- PRIS (venstre desktop / øverst mobil) -->
             <div class="grid col-price">
               <div class="kicker">Beregnet pris</div>
-              <div id="breakdown" class="grid"></div>
+              <div id="breakdown" class="grid role-list"></div>
+
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
+
               <div id="price-disclaimer" class="disclaimer">
                 Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
@@ -68,6 +72,10 @@
 
             <!-- KONTAKT (højre desktop / under pris mobil) -->
             <aside class="grid col-aside">
+              <div class="actions cta-first">
+                <button id="submit" class="btn">Bliv kontaktet af en rådgiver</button>
+              </div>
+
               <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
               <div>
                 <label for="lead-phone">Indtast telefonnummer</label>
@@ -77,29 +85,23 @@
                 Vi behandler din data ordentligt.
                 <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
               </div>
-              <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
+
               <div id="thanks-card" class="thanks-card" hidden>
                 <strong>Tak! Vi har modtaget din forespørgsel.</strong>
                 <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
               </div>
             </aside>
           </div>
+
+          <!-- Tilbage-knap NEDERST på mobil -->
+          <div class="actions mobile-only">
+            <button id="back3" class="btn secondary fullwidth">Tilbage</button>
+          </div>
         </section>
       </div>
     </div>
 
-    <!-- Sticky CTA (mobil) -->
-    <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
-      <div class="sticky-total">Årlig pris: <strong id="sticky-total">0 kr.</strong></div>
-      <button id="sticky-cta-btn" class="btn">Bliv kontaktet</button>
-    </div>
-
-    <!-- Tilbage-knap UNDER CTA på mobil -->
-    <div class="mobile-back-fixed">
-      <button id="back3" class="btn secondary">Tilbage</button>
-    </div>
-
-    <!-- Bridge -->
+    <!-- Bridge (loader ved beregning) -->
     <div id="bridge" class="bridge-overlay" aria-hidden="true">
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
@@ -136,24 +138,6 @@
     } catch { return null; }
   }
 
-  /* ---------- Mobil: “Læs mere” toggle til disclaimer ---------- */
-  function enableMobileDisclaimerToggle() {
-    const el = $("#price-disclaimer");
-    if (!el || el.dataset.enhanced) return;
-    el.dataset.enhanced = "1";
-    el.classList.add("collapsible");
-    const toggle = document.createElement("button");
-    toggle.className = "disclaimer-toggle";
-    toggle.type = "button";
-    toggle.textContent = "Læs mere";
-    toggle.addEventListener("click", () => {
-      el.classList.toggle("expanded");
-      toggle.textContent = el.classList.contains("expanded") ? "Skjul tekst" : "Læs mere";
-      postHeight();
-    });
-    el.after(toggle);
-  }
-
   /* ---------- steps ---------- */
   function setStep(n) {
     state.step = n;
@@ -161,18 +145,26 @@
     $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
     window.scrollTo({ top: 0, behavior: "smooth" });
 
-    const sticky = $("#sticky-cta");
-    if (n === 3 && isMobile()) {
-      sticky.style.display = "flex";
-      sticky.classList.add("show");
-      sticky.setAttribute("aria-hidden", "false");
-      enableMobileDisclaimerToggle();
-    } else {
-      sticky.classList.remove("show");
-      sticky.style.display = "none";
-      sticky.setAttribute("aria-hidden", "true");
-    }
+    if (n === 3 && isMobile()) enableMobileDisclaimerToggle();
     postHeight();
+  }
+
+  /* ---------- disclaimer “Læs mere” (mobil) ---------- */
+  function enableMobileDisclaimerToggle() {
+    const el = $("#price-disclaimer");
+    if (!el || el.dataset.enhanced) return;
+    el.dataset.enhanced = "1";
+    el.classList.add("collapsible");
+    const btn = document.createElement("button");
+    btn.className = "disclaimer-toggle";
+    btn.type = "button";
+    btn.textContent = "Læs mere";
+    btn.addEventListener("click", () => {
+      el.classList.toggle("expanded");
+      btn.textContent = el.classList.contains("expanded") ? "Skjul tekst" : "Læs mere";
+      postHeight();
+    });
+    el.after(btn);
   }
 
   /* ---------- combobox (scroll-safe på mobil) ---------- */
@@ -246,7 +238,7 @@
         el.setAttribute("role", "option");
         el.textContent = o.label;
 
-        // TOUCH – vælg kun, hvis der ikke er scrollet
+        // TOUCH – vælg kun hvis brugeren ikke scroller
         el.addEventListener("touchstart", (e) => {
           const t = e.changedTouches[0];
           touching = true; moved = false;
@@ -269,7 +261,7 @@
         }, { passive: false });
         el.addEventListener("touchcancel", () => { touching = false; moved = false; }, { passive: true });
 
-        // DESKTOP – klik
+        // Desktop klik
         el.addEventListener("mousedown", (e) => {
           if (touching) return;
           e.preventDefault();
@@ -341,7 +333,6 @@
   /* ---------- beregning ---------- */
   function calculateTotal() {
     const list = $("#breakdown");
-    list.classList.add("role-list");
     list.innerHTML = "";
     let sum = 0;
     const byLabel = new Map(POS.map(o => [o.label, o.price]));
@@ -357,7 +348,6 @@
     });
     state.total = Math.round(sum);
     $("#total").textContent = money(state.total);
-    $("#sticky-total").textContent = money(state.total);
     postHeight();
   }
 
@@ -368,10 +358,10 @@
     const antalEl    = $("#antal");
     const back2      = $("#back2");
     const next2      = $("#next2");
-    const back3Btn   = $("#back3");
+    const back3      = $("#back3");
     const submitBtn  = $("#submit");
-    const stickyBtn  = $("#sticky-cta-btn");
 
+    // CVR live lookup (visuel / tolerant)
     const handleCVRInput = debounce(async (val) => {
       const box = $("#virk-box");
       if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
@@ -425,20 +415,16 @@
       setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 900);
     });
 
-    back3Btn && (back3Btn.onclick = () => setStep(2));
+    back3 && (back3.onclick = () => setStep(2));
 
     function handleSubmit() {
       const phoneEl = $("#lead-phone");
-      const normalizedPhone = normalizeDkPhone(phoneEl?.value || "");
+      const normalizedPhone = (phoneEl?.value || "").replace(/[^\d]/g,"");
       if (normalizedPhone.length !== 8) { alert("Skriv et dansk telefonnummer på 8 cifre."); phoneEl?.focus(); return; }
-      if (phoneEl) phoneEl.value = normalizedPhone;
-
-      const validCVR = cleanCVR(cvrInput?.value);
-      if (validCVR.length !== 8) { alert("Indtast gyldigt CVR-nummer."); return; }
 
       const urlp = new URLSearchParams(location.search);
       const payload = {
-        cvr: state.cvr || validCVR,
+        cvr: state.cvr,
         virk: state.virk || {},
         roles: state.roles,
         total: state.total,
@@ -460,11 +446,6 @@
       phoneEl?.setAttribute("disabled", "true");
       $("#thanks-card").hidden = false;
 
-      const sticky = $("#sticky-cta");
-      sticky?.classList.remove("show");
-      sticky.style.display = "none";
-      sticky?.setAttribute("aria-hidden", "true");
-
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
       try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
 
@@ -472,19 +453,6 @@
     }
 
     submitBtn?.addEventListener("click", handleSubmit);
-
-    // Sticky CTA → hvis tomt felt, fokusér; ellers submit
-    stickyBtn?.addEventListener("click", () => {
-      const phoneEl = $("#lead-phone");
-      const digits = (phoneEl?.value || "").replace(/\D/g, "");
-      if (!phoneEl || digits.length < 8) {
-        setStep(3);
-        phoneEl?.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => phoneEl?.focus(), 250);
-      } else {
-        submitBtn?.click();
-      }
-    });
   }
 
   /* kick off */
