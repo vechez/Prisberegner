@@ -7,6 +7,7 @@
   --border:#e5e7eb;
   --cta:#0EA47A;
   --accent-pill:#E8FBF3;
+  --total-bg:#1f2937; /* nedtonet mørk grå i stedet for sort */
 }
 
 /* Base */
@@ -77,17 +78,21 @@ input[type="text"],input[type="tel"],select{
 .idx{width:28px;height:28px;display:grid;place-items:center;background:#f2f4f7;border-radius:999px;color:#111827;font-weight:700}
 .price-pill{font-size:12px;padding:4px 10px;border-radius:999px;background:var(--accent-pill);color:#065f46;border:1px solid #c7f0d0}
 
-/* Total */
-.total{display:grid;grid-template-columns:1fr auto;align-items:center;background:var(--ff);color:#fff;border-radius:14px;padding:14px 16px;margin-top:10px;gap:8px}
-.total-label{font-weight:700}
-.total-amount{font-weight:900;font-size:24px}
+/* Total – nedtonet vs CTA */
+.total{
+  display:grid;grid-template-columns:1fr auto;align-items:center;
+  background:var(--total-bg); color:#fff; border-radius:14px;
+  padding:10px 14px; margin-top:8px; gap:8px; box-shadow:none
+}
+.total-label{font-weight:600; font-size:14px; opacity:.9}
+.total-amount{font-weight:800; font-size:20px}
 
 /* Kolonner */
 .two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}
 
-/* Lead/aside – eksplicit rækkefølge sikrer CTA UNDER telefon */
+/* Lead/aside – eksplicit rækkefølge sikrer overskrift > felt > CTA */
 .col-aside{display:grid;gap:12px;grid-auto-flow:row}
-.lead-title{order:1;font-size:20px;font-weight:900}
+.lead-title{order:1;font-size:20px;font-weight:900;margin:0}
 .phone-field{order:2}
 .privacy{order:3}
 .cta-area{order:4}          /* CTA kommer efter feltet uanset hvad */
@@ -97,7 +102,7 @@ input[type="text"],input[type="tel"],select{
 /* Desktop: vis normal tekst, ingen toggle */
 .disclaimer-toggle{display:none}
 
-/* Loader/bridge overlay (kun når .show) */
+/* Loader/bridge overlay */
 .bridge-overlay{position:fixed;inset:0;background:rgba(255,255,255,.8);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:9999}
 .bridge-overlay.show{display:flex}
 .bridge-box{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px 20px;box-shadow:0 8px 28px rgba(0,0,0,.12);text-align:center;max-width:320px}
@@ -114,13 +119,13 @@ input[type="text"],input[type="tel"],select{
   .item{grid-template-columns:1fr}
   .btn.fullwidth{width:100%}
 
-  /* Pris-disclaimer: kraftigt gemt væk + toggle */
+  /* Pris-disclaimer: kraftigt gemt væk + toggle på mobil */
   #price-disclaimer{font-size:12px}
   #price-disclaimer.collapsible{max-height:0;overflow:hidden;transition:max-height .3s ease}
   #price-disclaimer.collapsible.expanded{max-height:320px}
   .disclaimer-toggle{display:inline-block;margin-top:6px;color:var(--cta);font-weight:800;font-size:14px;background:none;border:none;cursor:pointer}
 
-  /* Tilbage nederst på mobil */
+  /* Tilbage nederst og bred */
   .back-row .btn{width:100%}
   .mobile-only{display:block}
 }
