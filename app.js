@@ -1,4 +1,4 @@
-(function () {
+ (function () {
   /* ---------- iframe-højde til Webflow ---------- */
   function postHeight(){
     const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
@@ -96,7 +96,7 @@
             </aside>
           </div>
 
-          <!-- Tilbage-knap (vises på både desktop og mobil; nederst på mobil) -->
+          <!-- Tilbage-knap (både desktop og mobil; nederst på mobil) -->
           <div class="actions back-row">
             <button id="back3" class="btn secondary">Tilbage</button>
           </div>
@@ -150,34 +150,38 @@
     $$(".pane").forEach(el=>el.hidden=(+el.dataset.step!==n));
     window.scrollTo({top:0, behavior:"smooth"});
 
-    // Pris-disclaimer collapsible kun på mobil
-    const d = $("#price-disclaimer");
-    if(d){
-      if(isMobile()){
-        d.classList.add("collapsible");
-        ensureDisclaimerToggle();
-      }else{
-        d.classList.remove("collapsible","expanded");
-        $("#price-disclaimer-toggle")?.remove();
-      }
+    // Mobil: skjul disclaimer bag "Læs mere …"
+    if(n===3 && isMobile()){
+      setupMobileDisclaimerToggle();  // sikrer knap + skjul
     }
     postHeight();
   }
 
-  function ensureDisclaimerToggle(){
-    const el = $("#price-disclaimer");
-    if(!el || $("#price-disclaimer-toggle")) return;
-    const btn = document.createElement("button");
-    btn.id = "price-disclaimer-toggle";
-    btn.className = "disclaimer-toggle";
-    btn.type = "button";
-    btn.textContent = "Læs mere";
-    btn.addEventListener("click", ()=>{
-      el.classList.toggle("expanded");
-      btn.textContent = el.classList.contains("expanded") ? "Skjul tekst" : "Læs mere";
+  function setupMobileDisclaimerToggle(){
+    const disclaimer = $("#price-disclaimer");
+    if(!disclaimer) return;
+
+    // Start skjult (uden .expanded)
+    disclaimer.classList.remove("expanded");
+
+    // Opret knap hvis den ikke findes
+    let toggle = $("#price-disclaimer-toggle");
+    if(!toggle){
+      toggle = document.createElement("button");
+      toggle.id = "price-disclaimer-toggle";
+      toggle.className = "disclaimer-toggle";
+      toggle.type = "button";
+      toggle.textContent = "Læs mere …";
+      disclaimer.after(toggle);
+    }else{
+      toggle.textContent = "Læs mere …";
+    }
+
+    toggle.onclick = () => {
+      disclaimer.classList.toggle("expanded");
+      toggle.textContent = disclaimer.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
       postHeight();
-    });
-    el.after(btn);
+    };
   }
 
   /* ---------- combobox (mobil scroll-sikker) ---------- */
