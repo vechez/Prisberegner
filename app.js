@@ -102,6 +102,10 @@
       <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
     </div>
   </div>
+  <div class="sticky-cta" id="sticky-cta" aria-hidden="true">
+    <div class="sticky-total">Årlig pris: <strong id="sticky-total">0 kr.</strong></div>
+    <button id="sticky-cta-btn" class="btn">Bliv kontaktet</button>
+  </div>
 `;
   document.body.appendChild(root);
 
@@ -164,6 +168,16 @@
     $$(".pane").forEach((el) => (el.hidden = +el.dataset.step !== n));
     window.scrollTo({ top: 0, behavior: "smooth" });
     postHeight();
+    const sticky = document.getElementById("sticky-cta");
+    if (n === 3) {
+      sticky?.classList.add("show");
+      sticky?.setAttribute("aria-hidden", "false");
+      if (window.innerWidth <= 860) root.style.paddingBottom = "80px";
+    } else {
+      sticky?.classList.remove("show");
+      sticky?.setAttribute("aria-hidden", "true");
+      root.style.paddingBottom = "";
+    }
   }
 
   function makeCombo(host, idx) {
@@ -208,11 +222,12 @@
         el.className = "combo-opt";
         el.setAttribute("role", "option");
         el.textContent = o.label;
-        el.onclick = () => {
+        el.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
           input.value = o.label;
           state.roles[idx] = o.label;
           closeList();
-        };
+        });
         if (i === cursor) el.setAttribute("aria-selected", "true");
         list.appendChild(el);
       });
@@ -254,6 +269,7 @@
       }
     });
 
+    // Close the dropdown if clicking outside, or when input loses focus
     document.addEventListener(
       "click",
       (e) => {
@@ -261,7 +277,9 @@
       },
       { passive: true }
     );
+    input.addEventListener("blur", () => closeList());
   }
+
   function renderRoleSelectors() {
     const sel = $("#antal");
     if (sel && sel.children.length === 0) {
@@ -320,6 +338,8 @@
     state.total = Math.round(sum);
     const totalEl = document.getElementById("total");
     if (totalEl) totalEl.textContent = money(state.total);
+    const stickyTotal = document.getElementById("sticky-total");
+    if (stickyTotal) stickyTotal.textContent = money(state.total);
     postHeight();
   }
 
@@ -331,6 +351,7 @@
     const next2 = document.getElementById("next2");
     const back3 = document.getElementById("back3");
     const submitBtn = document.getElementById("submit");
+    const stickyBtn = document.getElementById("sticky-cta-btn");
 
     const handleCVRInput = debounce(async (val) => {
       const box = document.getElementById("virk-box");
@@ -389,7 +410,7 @@
           return;
         }
         setStep(2);
-        // antalEl?.focus(); ← FJERNET FOR MOBIL-FIX
+        // (antalEl focus was removed for mobile-fix)
         postHeight();
       });
     }
@@ -466,6 +487,10 @@
       phoneEl?.setAttribute("disabled", "true");
       const thanks = document.getElementById("thanks-card");
       if (thanks) thanks.hidden = false;
+      const stickyEl = document.getElementById("sticky-cta");
+      stickyEl?.classList.remove("show");
+      stickyEl?.setAttribute("aria-hidden", "true");
+      root.style.paddingBottom = "";
 
       try {
         window.dataLayer = window.dataLayer || [];
@@ -482,5 +507,6 @@
     }
 
     submitBtn?.addEventListener("click", handleSubmit);
+    stickyBtn?.addEventListener("click", () => submitBtn?.click());
   }
 })();
