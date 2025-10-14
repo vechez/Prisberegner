@@ -19,7 +19,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);line-height:1.45;font-
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 6px 24px rgba(12,30,33,.08);position:relative}
 .hdr{display:flex;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
 .dot{width:12px;height:12px;border-radius:999px;background:var(--ff)}
-.title{:0;font-size:18px}
+.title{margin:0;font-size:18px}
 
 /* Steps */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
@@ -32,7 +32,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);line-height:1.45;font-
 .row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
 
 /* Form */
-label{font-size:14px;color:var(--muted);display:block;-bottom:6px}
+label{font-size:14px;color:var(--muted);display:block;margin-bottom:6px}
 input[type="text"],input[type="tel"],select{
   width:100%;padding:12px;border:1px solid var(--border);border-radius:12px;min-height:48px;font-size:16px;background:#fff
 }
