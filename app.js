@@ -72,21 +72,21 @@
             </div>
 
             <!-- KONTAKT (højre desktop / under pris mobil) -->
-            <aside class="grid col-aside">
+            <aside class="col-aside">
               <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
 
-              <div>
+              <div class="phone-field">
                 <label for="lead-phone">Indtast telefonnummer</label>
                 <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
               </div>
 
-              <div class="disclaimer">
+              <div class="privacy disclaimer">
                 Vi behandler din data ordentligt.
                 <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
               </div>
 
               <!-- CTA SKAL LIGGE LIGE UNDER TELEFONFELTET -->
-              <div class="actions cta-container">
+              <div class="actions cta-area">
                 <button id="submit" class="btn">Bliv kontaktet af en rådgiver</button>
               </div>
 
@@ -97,9 +97,9 @@
             </aside>
           </div>
 
-          <!-- Tilbage-knap nederst på mobil -->
-          <div class="actions mobile-only">
-            <button id="back3" class="btn secondary fullwidth">Tilbage</button>
+          <!-- Tilbage-knap (vises på både desktop og mobil, fullwidth på mobil) -->
+          <div class="actions back-row">
+            <button id="back3" class="btn secondary">Tilbage</button>
           </div>
         </section>
       </div>
@@ -159,8 +159,7 @@
         ensureDisclaimerToggle();
       }else{
         d.classList.remove("collapsible","expanded");
-        const t = $("#price-disclaimer-toggle");
-        if(t) t.remove();
+        const t=$("#price-disclaimer-toggle"); if(t) t.remove();
       }
     }
     postHeight();
