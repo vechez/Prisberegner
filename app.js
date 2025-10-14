@@ -2,7 +2,7 @@
   /* --------------------------------------------
    * Konfiguration
    * ------------------------------------------ */
-  const THINK_MS = 750; // ventetid fra step 2 -> 3 (”beregner pris…”)
+  const THINK_MS = 800; // ventetid fra step 2 -> 3 (”beregner pris…”)
 
   /* --------------------------------------------
    * Height-posting til Webflow (smooth + debounced)
@@ -245,13 +245,11 @@
         : "<li class='empty'>Ingen resultater</li>";
     };
 
-    // første render
     renderList();
 
     input.addEventListener("focus", () => { list.hidden = false; renderList(input.value); });
     input.addEventListener("input", () => renderList(input.value));
     input.addEventListener("keydown", (e) => {
-      // enter vælger første match
       if (e.key === "Enter") {
         const first = list.querySelector("li:not(.empty)");
         if (first) {
@@ -286,8 +284,9 @@
     const target = parseInt(sel.value || "1", 10);
     state.antal = target;
 
+    // 👉 start tomt (i stedet for POS[0].label)
     if (state.roles.length < target) {
-      state.roles = state.roles.concat(new Array(target - state.roles.length).fill(POS[0]?.label || ""));
+      state.roles = state.roles.concat(new Array(target - state.roles.length).fill(""));
     } else if (state.roles.length > target) {
       state.roles.length = target;
     }
