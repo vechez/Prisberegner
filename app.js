@@ -1,5 +1,4 @@
 (function () {
-  /* -------- iframe-højde til parent -------- */
   function postHeight() {
     const h = Math.max(
       document.documentElement.scrollHeight,
@@ -12,94 +11,18 @@
   new ResizeObserver(postHeight).observe(document.documentElement);
   window.addEventListener("load", postHeight);
 
-  /* --------- markup --------- */
   const root = document.createElement("div");
   root.className = "wrap";
-  root.innerHTML = `
-    <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
-      <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
-      <div class="steps" aria-hidden="true">
-        <div class="step is" data-step="1">1. CVR</div>
-        <div class="step" data-step="2">2. Stillinger</div>
-        <div class="step" data-step="3">3. Se pris</div>
-      </div>
-      <div class="body">
-        <section class="pane" data-step="1">
-          <div class="grid">
-            <div>
-              <label for="cvr">CVR-nummer</label>
-              <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" aria-describedby="cvr-help" autocomplete="off" />
-              <div id="cvr-help" class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
-            </div>
-            <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
-            <div class="actions"><button id="next1" class="btn">Næste</button></div>
-          </div>
-        </section>
-
-        <section class="pane" data-step="2" hidden>
-          <div class="grid">
-            <div class="row">
-              <div>
-                <label for="antal">Antal medarbejdere</label>
-                <select id="antal" name="antal"></select>
-              </div>
-            </div>
-            <div class="hint">Vælg stilling for hver medarbejder.</div>
-            <div id="roles" class="list"></div>
-            <div class="actions"><button id="back2" class="btn secondary">Tilbage</button><button id="next2" class="btn">Se pris</button></div>
-          </div>
-        </section>
-
-        <section class="pane" data-step="3" hidden>
-          <div class="two-col">
-            <div class="grid">
-              <div class="kicker">Beregnet pris</div>
-              <div id="breakdown" class="grid"></div>
-              <div class="total">
-                <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
-                <div class="total-amount" id="total">0 kr.</div>
-              </div>
-              <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
-              </div>
-              <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
-            </div>
-            <aside class="grid">
-              <div class="hint">Bliv kontaktet med et tilbud. Indtast dit telefonnummer, så ringer en rådgiver dig op med en pris baseret på dine valg.</div>
-              <div><label for="lead-phone">Indtast telefonnummer </label><input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel"></div>
-              <div class="hint">Indtast telefonnummer og få et uforpligtende tilbud.<br><br>Vi behandler din data ordentligt. <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.</div>
-              <div class="actions"><button id="submit" class="btn">Bliv kontaktet af en rådgiver</button></div>
-              <div id="thanks-card" class="thanks-card" hidden>
-                <strong>Tak! Vi har modtaget din forespørgsel.</strong>
-                <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
-              </div>
-            </aside>
-          </div>
-        </section>
-      </div>
-    </div>
-    <div id="bridge" class="bridge-overlay" aria-hidden="true">
-      <div class="bridge-box">
-        <div class="bridge-title">Beregner pris…</div>
-        <div class="meter"><span></span></div>
-        <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
-      </div>
-    </div>
-  `;
+  root.innerHTML = `...`; // behold din eksisterende HTML her
   document.body.appendChild(root);
 
-  /* -------- helpers -------- */
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
   const state = { step: 1, cvr: "", virk: null, antal: 1, roles: [], total: 0 };
   const money = (n) =>
     (n || 0).toLocaleString("da-DK", { minimumFractionDigits: 0 }) + " kr.";
-
-  // CVR → kun 8 cifre
   const cleanCVR = (v) => String(v || "").replace(/\D+/g, "").slice(0, 8);
-
-  // Debounce
   const debounce = (fn, ms = 400) => {
     let t;
     return (...a) => {
@@ -107,8 +30,6 @@
       t = setTimeout(() => fn(...a), ms);
     };
   };
-
-  // DK-telefon normalisering
   function normalizeDkPhone(input) {
     if (!input) return "";
     let digits = String(input).replace(/[^\d]/g, "");
@@ -117,7 +38,6 @@
     return digits;
   }
 
-  /* -------- data -------- */
   let POS = [];
   fetch("positions.json")
     .then((r) => r.json())
@@ -131,15 +51,11 @@
       init();
     });
 
-  /* -------- Cloudflare function: /api/cvr -------- */
   async function fetchVirkByCVR(cvr) {
     try {
       const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
       if (!r.ok) {
-        if (r.status === 429) {
-          console.warn("CVR kvote ramt");
-          return { kvote: true };
-        }
+        if (r.status === 429) return { kvote: true };
         const err = await r.json().catch(() => null);
         console.warn("CVR endpoint fejl:", r.status, err);
         return null;
@@ -151,7 +67,6 @@
     }
   }
 
-  /* -------- UI logik -------- */
   function setStep(n) {
     state.step = n;
     $$(".step").forEach((el) =>
@@ -162,7 +77,6 @@
     postHeight();
   }
 
-  // ====== FIXET COMBOBOX / DROPDOWN ======
   function makeCombo(host, idx) {
     host.className = "combobox";
     host.innerHTML =
@@ -170,21 +84,32 @@
       '<div class="combo-list" role="listbox"></div>';
 
     const input = host.querySelector("input");
-    const list  = host.querySelector(".combo-list");
+    const list = host.querySelector(".combo-list");
 
     let opts = POS;
-    let open = false, cursor = -1;
+    let open = false,
+      cursor = -1;
 
     const openList = () => {
       if (!opts || !opts.length) return;
       list.style.display = "block";
       input.setAttribute("aria-expanded", "true");
       open = true;
+
+      setTimeout(() => {
+        const rect = host.getBoundingClientRect();
+        const isVisible = rect.top > 0 && rect.bottom < window.innerHeight;
+        if (!isVisible) {
+          host.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 200);
     };
+
     const closeList = () => {
       list.style.display = "none";
       input.setAttribute("aria-expanded", "false");
-      open = false; cursor = -1;
+      open = false;
+      cursor = -1;
     };
 
     const render = (items) => {
@@ -206,29 +131,31 @@
 
     const filter = (q) => {
       const s = (q || "").toLowerCase().trim();
-      // tom søgning → vis alle (op til 300)
       opts = !s ? POS : POS.filter((o) => o.label.toLowerCase().includes(s));
       render(opts);
       opts.length ? openList() : closeList();
     };
 
-    // Åbn på input + focus + click
     input.addEventListener("input", (e) => filter(e.target.value));
     input.addEventListener("focus", () => filter(input.value));
-    input.addEventListener("click",  () => filter(input.value));
+    input.addEventListener("click", () => filter(input.value));
 
-    // Tastatur navigation
     input.addEventListener("keydown", (e) => {
       if (!open && (e.key === "ArrowDown" || e.key === "Enter")) {
         filter(input.value);
         return;
       }
-      if (e.key === "Escape") { closeList(); return; }
+      if (e.key === "Escape") {
+        closeList();
+        return;
+      }
       if (!open) return;
       if (e.key === "ArrowDown") {
-        cursor = Math.min(cursor + 1, opts.length - 1); render(opts);
+        cursor = Math.min(cursor + 1, opts.length - 1);
+        render(opts);
       } else if (e.key === "ArrowUp") {
-        cursor = Math.max(cursor - 1, 0); render(opts);
+        cursor = Math.max(cursor - 1, 0);
+        render(opts);
       } else if (e.key === "Enter") {
         if (opts[cursor]) {
           input.value = opts[cursor].label;
@@ -238,13 +165,14 @@
       }
     });
 
-    // Luk når man klikker udenfor
-    document.addEventListener("click", (e) => {
-      if (!host.contains(e.target)) closeList();
-    }, { passive: true });
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!host.contains(e.target)) closeList();
+      },
+      { passive: true }
+    );
   }
-  // ====== /combobox ======
-
   function renderRoleSelectors() {
     const sel = $("#antal");
     if (sel && sel.children.length === 0) {
@@ -306,7 +234,6 @@
     postHeight();
   }
 
-  /* -------- init & events -------- */
   function init() {
     const cvrInput = document.getElementById("cvr");
     const next1 = document.getElementById("next1");
@@ -316,7 +243,6 @@
     const back3 = document.getElementById("back3");
     const submitBtn = document.getElementById("submit");
 
-    // CVR live-opslag
     const handleCVRInput = debounce(async (val) => {
       const box = document.getElementById("virk-box");
       if (val.length !== 8) {
@@ -374,7 +300,7 @@
           return;
         }
         setStep(2);
-        antalEl?.focus();
+        // antalEl?.focus(); ← FJERNET FOR MOBIL-FIX
         postHeight();
       });
     }
