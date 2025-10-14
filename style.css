@@ -252,3 +252,45 @@ input[type="text"],input[type="tel"],select{
     min-height: 44px;
   }
 }
+/* Fix for combo-list dropdown overlapping and mobile responsiveness */
+.combobox {
+  position: relative;
+}
+
+.combo-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  z-index: 9999;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.combo-opt {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combo-opt:hover,
+.combo-opt[aria-selected="true"] {
+  background-color: #f0f0f0;
+}
+
+/* Mobile specific tweaks */
+@media (max-width: 600px) {
+  .combo-list {
+    font-size: 16px;
+    max-height: 200px;
+    top: calc(100% + 4px);
+    z-index: 99999;
+  }
+}
