@@ -16,8 +16,8 @@
   const root = document.createElement("div");
   root.className = "wrap";
   root.innerHTML = `
-    <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - Beregn pris</h2></div>
-</div>
+    <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
+      <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
@@ -53,15 +53,14 @@
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
             <div class="grid">
-              <div class="kicker">Pris</div>
+              <div class="kicker">Fra-priser</div>
               <div id="breakdown" class="grid"></div>
-            <div id="breakdown" class="grid"></div>
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
               <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
+                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
