@@ -189,7 +189,7 @@
   function makeCombo(host, idx){
     host.className="combobox";
     host.innerHTML =
-      '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">'+
+      '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg eller vælg stilling">'+
       '<div class="combo-list" role="listbox"></div>';
 
     const input = host.querySelector("input");
