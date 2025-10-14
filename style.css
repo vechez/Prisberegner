@@ -20,7 +20,7 @@ html, body { margin: 0; background: var(--bg); color: var(--text); line-height: 
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 6px 24px rgba(12,30,33,.08);
-  overflow: visible; /* dropdown må gerne flyde ud */
+  overflow: visible;
   position: relative;
 }
 .hdr { display: flex; gap: 10px; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); }
@@ -99,7 +99,7 @@ input[type="text"], input[type="tel"], select {
 .total-label { font-weight: 700; }
 .total-amount { font-weight: 900; font-size: 22px; }
 
-/* Two columns */
+/* Two columns (desktop: pris venstre, kontakt højre) */
 .two-col { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; align-items: start; }
 
 /* Bridge overlay */
@@ -128,10 +128,9 @@ input[type="text"], input[type="tel"], select {
   padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Mobile */
+/* Mobile: pris øverst, telefon/CTA under */
 @media (max-width: 860px) {
-  /* MOBIL: kontaktsektion før pris (markup er i samme rækkefølge) */
-  .two-col { display: flex; flex-direction: column; }
+  .two-col { display: flex; flex-direction: column; } /* DOM-rækkefølgen bruges: pris først, kontakt efter */
 
   /* kun én CTA på mobil: sticky bar */
   aside .actions { display: none; }
