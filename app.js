@@ -78,7 +78,7 @@
 
 
               <div class="phone-field">
-                <label for="lead-phone">Indtast telefonnummer</label>
+                <label for="lead-phone">Telefonnummer</label>
                 <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
               </div>
 
