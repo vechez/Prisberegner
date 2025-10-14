@@ -41,7 +41,7 @@ input[type="text"],input[type="tel"],select{
 .review-row{display:flex;gap:8px;align-items:center;font-size:14px;word-break:break-word}
 .review-row strong{min-width:140px;color:#374151}
 
-/* Buttons – store og tydelige */
+/* Buttons – store og tydelige (desktop default) */
 .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
 .btn{
   border:0;border-radius:14px;padding:16px 22px;background:var(--cta);color:#fff;font-weight:800;cursor:pointer;
@@ -90,16 +90,15 @@ input[type="text"],input[type="tel"],select{
 /* Kolonner */
 .two-col{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;align-items:start}
 
-/* Lead/aside – eksplicit rækkefølge sikrer overskrift > felt > CTA */
+/* Lead/aside – lås rækkefølgen: Overskrift > felt > privacy > CTA */
 .col-aside{display:grid;gap:12px;grid-auto-flow:row}
 .lead-title{order:1;font-size:20px;font-weight:900;margin:0}
 .phone-field{order:2}
 .privacy{order:3}
-.cta-area{order:4}          /* CTA kommer efter feltet uanset hvad */
+.cta-area{order:4}
 
 /* Disclaimer */
 .disclaimer{font-size:12px;color:var(--muted)}
-/* Desktop: vis normal tekst, ingen toggle */
 .disclaimer-toggle{display:none}
 
 /* Loader/bridge overlay */
@@ -117,7 +116,21 @@ input[type="text"],input[type="tel"],select{
 @media (max-width:860px){
   .two-col{grid-template-columns:1fr;gap:16px}
   .item{grid-template-columns:1fr}
-  .btn.fullwidth{width:100%}
+
+  /* CTA: fyld hele bredden på mobil */
+  .cta-area .btn{width:100%}
+
+  /* Mere luft ned til “Tilbage” + diskret tilbage-knap */
+  .back-row{margin-top:22px}
+  .back-row .btn.secondary{
+    width:100%;
+    font-size:16px;
+    padding:12px 16px;
+    color:#64737a;               /* mere diskret */
+    border-color:#e7eaee;
+    background:#fff;
+    box-shadow:none;
+  }
 
   /* Pris-disclaimer: kraftigt gemt væk + toggle på mobil */
   #price-disclaimer{font-size:12px}
@@ -125,7 +138,5 @@ input[type="text"],input[type="tel"],select{
   #price-disclaimer.collapsible.expanded{max-height:320px}
   .disclaimer-toggle{display:inline-block;margin-top:6px;color:var(--cta);font-weight:800;font-size:14px;background:none;border:none;cursor:pointer}
 
-  /* Tilbage nederst og bred */
-  .back-row .btn{width:100%}
   .mobile-only{display:block}
 }
