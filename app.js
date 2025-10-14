@@ -155,143 +155,167 @@
   }
 
   /* ---------- combobox (scroll-safe på mobil) ---------- */
-  function makeCombo(host, idx) {
-    host.className = "combobox";
-    host.innerHTML =
-      '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">' +
-      '<div class="combo-list" role="listbox"></div>';
+function makeCombo(host, idx) {
+  host.className = "combobox";
+  host.innerHTML =
+    '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">' +
+    '<div class="combo-list" role="listbox"></div>';
 
-    const input = host.querySelector("input");
-    const list  = host.querySelector(".combo-list");
+  const input = host.querySelector("input");
+  const list  = host.querySelector(".combo-list");
 
-    let opts = POS, open = false, cursor = -1;
-    let ptrId = null, startY = 0, startX = 0, moved = false;
+  let opts = POS, open = false, cursor = -1;
+  const isMobile = () => matchMedia("(max-width:860px)").matches;
 
-    function placeListFixed() {
-      if (!isMobile()) return;
-      const r = input.getBoundingClientRect();
-      const vv = window.visualViewport;
-      const offY = vv ? vv.offsetTop : 0;
-      Object.assign(list.style, {
-        position: "fixed",
-        left: r.left + "px",
-        top: (r.bottom + 6 - offY) + "px",
-        width: r.width + "px",
-        maxWidth: r.width + "px"
-      });
-    }
-    function resetListPos() {
-      if (!isMobile()) return;
-      list.style.removeProperty("left");
-      list.style.removeProperty("top");
-      list.style.removeProperty("width");
-      list.style.removeProperty("max-width");
-      list.style.position = "fixed";
-    }
-    function openList() {
-      if (!opts || !opts.length) return;
-      list.style.display = "block";
-      input.setAttribute("aria-expanded", "true");
-      open = true;
-      if (isMobile()) {
-        placeListFixed();
-        window.addEventListener("scroll", placeListFixed, { passive: true });
-        window.addEventListener("resize", placeListFixed, { passive: true });
-        window.visualViewport?.addEventListener("resize", placeListFixed);
-        window.visualViewport?.addEventListener("scroll", placeListFixed, { passive: true });
-      } else {
-        list.style.position = "absolute";
-      }
-      setTimeout(() => host.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
-    }
-    function closeList() {
-      list.style.display = "none";
-      input.setAttribute("aria-expanded", "false");
-      open = false; cursor = -1;
-      if (isMobile()) {
-        window.removeEventListener("scroll", placeListFixed);
-        window.removeEventListener("resize", placeListFixed);
-        window.visualViewport?.removeEventListener("resize", placeListFixed);
-        window.visualViewport?.removeEventListener("scroll", placeListFixed);
-      }
-      resetListPos();
-    }
-
-    const render = (items) => {
-      list.innerHTML = "";
-      (items || []).slice(0, 300).forEach((o, i) => {
-        const el = document.createElement("div");
-        el.className = "combo-opt";
-        el.setAttribute("role", "option");
-        el.textContent = o.label;
-
-        // Scroll-safe selection: registrér bevægelse, vælg kun hvis der IKKE er scrollet
-        el.addEventListener("pointerdown", (ev) => {
-          ptrId = ev.pointerId;
-          startY = ev.clientY; startX = ev.clientX; moved = false;
-        }, { passive: true });
-
-        el.addEventListener("pointermove", (ev) => {
-          if (ptrId !== null && ev.pointerId === ptrId) {
-            const dy = Math.abs(ev.clientY - startY);
-            const dx = Math.abs(ev.clientX - startX);
-            if (dy > 8 || dx > 8) moved = true; // threshold
-          }
-        }, { passive: true });
-
-        const commit = (ev) => {
-          if (ptrId !== null && ev.pointerId !== ptrId) return;
-          ptrId = null;
-          if (moved) { moved = false; return; } // bruger scrollede – ikke et valg
-          ev.preventDefault();
-          input.value = o.label;
-          state.roles[idx] = o.label;
-          input.blur();
-          closeList();
-        };
-        el.addEventListener("pointerup", commit, { passive: false });
-        el.addEventListener("click", (e) => { // fallback for mus
-          if (!moved) { e.preventDefault(); input.value = o.label; state.roles[idx] = o.label; input.blur(); closeList(); }
-          moved = false;
-        });
-
-        if (i === cursor) el.setAttribute("aria-selected", "true");
-        list.appendChild(el);
-      });
-      if (open && isMobile()) placeListFixed();
-    };
-
-    const filter = (q) => {
-      const s = (q || "").toLowerCase().trim();
-      opts = !s ? POS : POS.filter(o => o.label.toLowerCase().includes(s));
-      render(opts);
-      opts.length ? openList() : closeList();
-    };
-
-    input.addEventListener("input", (e) => filter(e.target.value));
-    input.addEventListener("focus", () => filter(input.value));
-    input.addEventListener("click", () => filter(input.value));
-
-    input.addEventListener("keydown", (e) => {
-      if (!open && (e.key === "ArrowDown" || e.key === "Enter")) { filter(input.value); return; }
-      if (e.key === "Escape") { closeList(); return; }
-      if (!open) return;
-      if (e.key === "ArrowDown") { cursor = Math.min(cursor + 1, opts.length - 1); render(opts); }
-      else if (e.key === "ArrowUp") { cursor = Math.max(cursor - 1, 0); render(opts); }
-      else if (e.key === "Enter") {
-        if (opts[cursor]) {
-          input.value = opts[cursor].label;
-          state.roles[idx] = opts[cursor].label;
-          input.blur();
-          closeList();
-        }
-      }
+  function placeListFixed() {
+    if (!isMobile()) return;
+    const r = input.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const offY = vv ? vv.offsetTop : 0;
+    Object.assign(list.style, {
+      position: "fixed",
+      left: r.left + "px",
+      top: (r.bottom + 6 - offY) + "px",
+      width: r.width + "px",
+      maxWidth: r.width + "px"
     });
-
-    document.addEventListener("pointerdown", (e) => { if (open && !host.contains(e.target)) closeList(); }, { passive: true });
-    input.addEventListener("blur", () => setTimeout(() => { if (open) closeList(); }, 50));
+  }
+  function resetListPos() {
+    if (!isMobile()) return;
+    list.style.removeProperty("left");
+    list.style.removeProperty("top");
+    list.style.removeProperty("width");
+    list.style.removeProperty("max-width");
+    list.style.position = "fixed";
+  }
+  function openList() {
+    if (!opts || !opts.length) return;
+    list.style.display = "block";
+    input.setAttribute("aria-expanded", "true");
+    open = true;
+    if (isMobile()) {
+      placeListFixed();
+      window.addEventListener("scroll", placeListFixed, { passive: true });
+      window.addEventListener("resize", placeListFixed, { passive: true });
+      window.visualViewport?.addEventListener("resize", placeListFixed);
+      window.visualViewport?.addEventListener("scroll", placeListFixed, { passive: true });
+    } else {
+      list.style.position = "absolute";
+    }
+    setTimeout(() => host.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
+  }
+  function closeList() {
+    list.style.display = "none";
+    input.setAttribute("aria-expanded", "false");
+    open = false; cursor = -1;
+    if (isMobile()) {
+      window.removeEventListener("scroll", placeListFixed);
+      window.removeEventListener("resize", placeListFixed);
+      window.visualViewport?.removeEventListener("resize", placeListFixed);
+      window.visualViewport?.removeEventListener("scroll", placeListFixed);
+    }
+    resetListPos();
   }
 
+  // Hjælper: opret option med scroll-safe touch/klik-adfærd
+  function attachOption(el, label) {
+    let touchStartY = 0, touchStartX = 0, moved = false, touching = false;
+
+    // TOUCH (mobil) – vælg KUN på touchend uden bevægelse
+    el.addEventListener("touchstart", (e) => {
+      const t = e.changedTouches[0];
+      touching = true;
+      moved = false;
+      touchStartY = t.clientY;
+      touchStartX = t.clientX;
+    }, { passive: true });
+
+    el.addEventListener("touchmove", (e) => {
+      if (!touching) return;
+      const t = e.changedTouches[0];
+      const dy = Math.abs(t.clientY - touchStartY);
+      const dx = Math.abs(t.clientX - touchStartX);
+      if (dy > 8 || dx > 8) moved = true; // bruger scroller
+      // IMPORTANT: ingen preventDefault her → scroll skal virke
+    }, { passive: true });
+
+    el.addEventListener("touchend", (e) => {
+      if (!touching) return;
+      touching = false;
+      if (moved) { // det var en scroll – ignorér valg
+        moved = false;
+        return;
+      }
+      // Rigtigt tap → vælg
+      e.preventDefault();
+      input.value = label;
+      state.roles[idx] = label;
+      input.blur();
+      closeList();
+    }, { passive: false }); // skal være false for at kunne preventDefault på iOS
+
+    el.addEventListener("touchcancel", () => { touching = false; moved = false; }, { passive: true });
+
+    // DESKTOP – normal klik
+    el.addEventListener("mousedown", (e) => {
+      // hvis dette mousedown kommer efter et touch, ignoreres det (mobil sender syntetisk click)
+      if (touching) return;
+      // vælg ved mousedown → hurtigt og stabilt på desktop
+      e.preventDefault();
+      input.value = label;
+      state.roles[idx] = label;
+      closeList();
+    });
+    el.addEventListener("click", (e) => {
+      // beskyt mod syntetiske klik efter touch
+      if (touching) { e.preventDefault(); return; }
+    });
+  }
+
+  const render = (items) => {
+    list.innerHTML = "";
+    (items || []).slice(0, 300).forEach((o, i) => {
+      const el = document.createElement("div");
+      el.className = "combo-opt";
+      el.setAttribute("role", "option");
+      el.textContent = o.label;
+      attachOption(el, o.label);
+      if (i === cursor) el.setAttribute("aria-selected", "true");
+      list.appendChild(el);
+    });
+    if (open && isMobile()) placeListFixed();
+  };
+
+  const filter = (q) => {
+    const s = (q || "").toLowerCase().trim();
+    opts = !s ? POS : POS.filter(o => o.label.toLowerCase().includes(s));
+    render(opts);
+    opts.length ? openList() : closeList();
+  };
+
+  input.addEventListener("input", (e) => filter(e.target.value));
+  input.addEventListener("focus", () => filter(input.value));
+  input.addEventListener("click", () => filter(input.value));
+
+  input.addEventListener("keydown", (e) => {
+    if (!open && (e.key === "ArrowDown" || e.key === "Enter")) { filter(input.value); return; }
+    if (e.key === "Escape") { closeList(); return; }
+    if (!open) return;
+    if (e.key === "ArrowDown") { cursor = Math.min(cursor + 1, opts.length - 1); render(opts); }
+    else if (e.key === "ArrowUp") { cursor = Math.max(cursor - 1, 0); render(opts); }
+    else if (e.key === "Enter") {
+      if (opts[cursor]) {
+        input.value = opts[cursor].label;
+        state.roles[idx] = opts[cursor].label;
+        input.blur();
+        closeList();
+      }
+    }
+  });
+
+  document.addEventListener("pointerdown", (e) => { if (open && !host.contains(e.target)) closeList(); }, { passive: true });
+  input.addEventListener("blur", () => setTimeout(() => { if (open) closeList(); }, 50));
+}
   /* ---------- step 2 UI ---------- */
   function renderRoleSelectors() {
     const sel = $("#antal");
