@@ -2,7 +2,7 @@
   /* ============================
      Konfiguration
   ============================ */
-  const THINK_MS = 750; // “tænke”-tid mellem step 2 → 3 (ms). Justér frit.
+  const THINK_MS = 800; // ventetid mellem step 2 → 3 (ms)
 
   /* ============================
      Webflow/iframe højde (throttlet + pausable)
@@ -11,15 +11,15 @@
   let _heightPaused = false;
 
   function safePostHeight() {
-    if (_heightPaused) return;      // respekter pause under batch
-    if (_heightTick) return;        // saml flere kald i samme frame
+    if (_heightPaused) return;
+    if (_heightTick) return;
     _heightTick = requestAnimationFrame(() => {
       _heightTick = null;
       if (_heightTimer) clearTimeout(_heightTimer);
       _heightTimer = setTimeout(() => {
         const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
-      }, 90); // kan sættes til 60–140 afhængigt af embed
+      }, 90);
     });
   }
 
@@ -32,6 +32,9 @@
     <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
       <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
 
+      <!-- Progress bar -->
+      <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
@@ -43,9 +46,9 @@
         <section class="pane" data-step="1">
           <div class="grid">
             <div>
-              <label for="cvr">Indtast CVR-nummer</label>
+              <label for="cvr">CVR-nummer</label>
               <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" autocomplete="off" />
-              <div class="hint">Vi henter automatisk data fra VIRK.</div>
+              <div class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
             </div>
             <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
             <div class="actions"><button id="next1" class="btn">Næste</button></div>
@@ -118,13 +121,13 @@
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
         <div class="meter"><span></span></div>
-        <div class="bridge-hint">Et øjeblik – vi beregner en pris</div>
+        <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
       </div>
     </div>
   `;
   document.body.appendChild(root);
 
-  // OBS: observer KUN din app-root (mindre støj end hele documentElement)
+  // observer kun app-root
   new ResizeObserver(safePostHeight).observe(root);
   window.addEventListener("load", safePostHeight);
 
@@ -200,12 +203,22 @@
   }
 
   /* ============================
+     Progress bar
+  ============================ */
+  function setProgress(step){
+    const bar = $("#progress-bar");
+    const pct = Math.max(1, Math.min(step,3)) / 3 * 100;
+    if (bar) bar.style.width = pct + "%";
+  }
+
+  /* ============================
      Steps
   ============================ */
   function setStep(n) {
     state.step = n;
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
     $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
+    setProgress(n);
 
     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(_) {}
     safePostHeight();
@@ -221,7 +234,7 @@
   }
 
   /* ============================
-     “Læs mere …” toggle (Step 3)
+     “Læs mere …” toggle (Step 3 – mobil)
   ============================ */
   let toggleWired = false;
   function wireDisclaimerToggle(){
@@ -229,9 +242,8 @@
     const btn  = $("#price-disclaimer-toggle");
     if (!disc || !btn) return;
 
-    // reset label hver gang vi lander på step 3
     btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-    if (toggleWired) return; // bind kun én gang
+    if (toggleWired) return;
     toggleWired = true;
 
     btn.addEventListener("click", () => {
@@ -366,7 +378,7 @@
     const v = await fetchVirkByCVR(val);
 
     if (v?.kvote) {
-      box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt</div>';
+      box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
       safePostHeight(); return;
     }
 
@@ -475,11 +487,14 @@
   init();
 
   /* ============================
-     Prefetch positions on idle (Step 2 bliver instant)
+     Prefetch positions on idle
   ============================ */
   if ("requestIdleCallback" in window) {
     requestIdleCallback(() => ensurePositions().catch(() => {}));
   } else {
     setTimeout(() => ensurePositions().catch(() => {}), 500);
   }
+
+  /* start i step 1 progress */
+  setProgress(1);
 })();
