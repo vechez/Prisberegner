@@ -25,9 +25,9 @@
         <section class="pane" data-step="1">
           <div class="grid">
             <div>
-              <label for="cvr">CVR-nummer</label>
+              <label for="cvr">Indtast CVR-nummer</label>
               <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" aria-describedby="cvr-help" autocomplete="off" />
-              <div id="cvr-help" class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
+              <div id="cvr-help" class="hint">Vi henter automatisk data fra VIRK.</div>
             </div>
             <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
             <div class="actions"><button id="next1" class="btn">Næste</button></div>
@@ -73,7 +73,9 @@
             <!-- KONTAKT (højre desktop / under pris mobil) -->
             <aside class="col-aside">
               <!-- OVERSKRIFT -> FELT -> PRIVACY -> CTA (orden låses i CSS) -->
-              <h3 class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</h3>
+              <h3 class="lead-title">Lyder det interessant? 
+              
+              Så indtast dit telefonnummer</h3>
 
               <div class="phone-field">
                 <label for="lead-phone">Indtast telefonnummer</label>
