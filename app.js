@@ -390,7 +390,7 @@
 
     if (v && (v.navn || v.name || v.cvr)) {
       state.virk = v; state.cvr = val;
-      const navn = v.navn eller v.name || "-";
+      const navn = v.navn || v.name || "-";
       const adresse = v.adresse || v.address || "-";
       const branche = v.branche || v.industrydesc;
       const branchekode = v.branchekode || v.industrycode;
