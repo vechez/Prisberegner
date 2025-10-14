@@ -162,3 +162,62 @@ input[type="text"],input[type="tel"],select{
 @media (max-width:860px){ .sticky-cta.show{display:flex} }
 
 .thanks-card{border:1px solid var(--border);border-radius:12px;padding:12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.05);animation:fadeIn .25s ease}
+
+@media (max-width: 860px) {
+  /* Rækkefølge – først telefon/CTA, så prisoversigt */
+  .two-col {
+    flex-direction: column-reverse;
+  }
+
+  /* Formularboks styling */
+  aside.grid {
+    background: #fff;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  /* Input og knap fuld bredde */
+  #lead-phone {
+    width: 100%;
+    margin-top: 8px;
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  #submit {
+    width: 100%;
+    margin-top: 8px;
+    font-size: 16px;
+    padding: 14px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  #thanks-card {
+    margin-top: 10px;
+  }
+
+  .total {
+    margin-bottom: 12px;
+  }
+
+  .grid {
+    gap: 10px;
+  }
+
+  .disclaimer {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Fiks spacing i hele aside */
+  aside.grid > * + * {
+    margin-top: 8px;
+  }
+
+  /* Sikre spacing også i prisboks */
+  .total-amount {
+    font-size: 20px;
+  }
+}
