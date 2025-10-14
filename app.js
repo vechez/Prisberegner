@@ -2,7 +2,7 @@
   /* ============================
      Konfiguration
   ============================ */
-  const THINK_MS = 800; // ventetid mellem step 2 → 3 (ms)
+  const THINK_MS = 750; // ventetid mellem step 2 → 3 (ms)
 
   /* ============================
      Webflow/iframe højde (throttlet + pausable)
