@@ -53,7 +53,7 @@
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
             <div class="grid">
-              <div class="kicker">Fra-priser</div>
+              <div class="kicker">Beregnet pris</div>
               <div id="breakdown" class="grid"></div>
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
