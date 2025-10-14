@@ -66,9 +66,8 @@
               <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
             </div>
             <aside class="grid">
-              <div class="hint">Bliv kontaktet med et tilbud. Indtast dit telefonnummer, så ringer en rådgiver dig op med en pris baseret på dine valg.</div>
               <div>
-                <label for="lead-phone">Indtast telefonnummer</label>
+                <label for="lead-phone">Lyder det interessant? Så indtast dit telefonnummer</label>
                 <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
               </div>
               <div class="hint">
