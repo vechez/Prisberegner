@@ -107,16 +107,11 @@
   const $  = (s, el=document) => el.querySelector(s);
   const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
   const state = { step: 1, cvr: "", virk: null, antal: 1, roles: [], total: 0 };
-  const money = (n) => (n || 0).toLocaleString("da-DK") + " kr.";
+  const money  = (n) => (n || 0).toLocaleString("da-DK") + " kr.";
   const cleanCVR = (v) => String(v || "").replace(/\D+/g, "").slice(0, 8);
   const debounce = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   const isMobile = () => matchMedia("(max-width:860px)").matches;
-  function normalizeDkPhone(s) {
-    if (!s) return "";
-    let d = String(s).replace(/[^\d]/g, "");
-    if (d.startsWith("0045")) d = d.slice(4); else if (d.startsWith("45")) d = d.slice(2);
-    return d;
-  }
+  function normalizeDkPhone(s){ if(!s) return ""; let d=String(s).replace(/[^\d]/g,""); if(d.startsWith("0045")) d=d.slice(4); else if(d.startsWith("45")) d=d.slice(2); return d; }
 
   /* ---------- data (positions) ---------- */
   let POS = [];
@@ -134,6 +129,28 @@
     } catch { return null; }
   }
 
+  /* ---------- Collapsible disclaimer ---------- */
+  function enhanceDisclaimer(){
+    const el = $("#price-disclaimer");
+    if (!el || el.dataset.enhanced) return;
+    el.dataset.enhanced = "1";
+    const content = el.innerHTML;
+    el.innerHTML = `
+      <div class="collapsible" aria-expanded="false">
+        <span data-toggle>Læs vilkår</span>
+        <div data-body>${content}</div>
+      </div>
+    `;
+    const wrap = el.querySelector(".collapsible");
+    const toggle = el.querySelector("[data-toggle]");
+    toggle.addEventListener("click", ()=>{
+      const open = wrap.getAttribute("aria-expanded")==="true";
+      wrap.setAttribute("aria-expanded", String(!open));
+      toggle.textContent = open ? "Læs vilkår" : "Skjul vilkår";
+      postHeight();
+    });
+  }
+
   /* ---------- steps ---------- */
   function setStep(n) {
     state.step = n;
@@ -147,6 +164,7 @@
       sticky?.classList.add("show");
       sticky?.setAttribute("aria-hidden", "false");
       root.style.paddingBottom = "calc(88px + env(safe-area-inset-bottom, 0px))";
+      enhanceDisclaimer();
     } else {
       sticky?.classList.remove("show");
       sticky?.setAttribute("aria-hidden", "true");
@@ -251,7 +269,7 @@
 
         el.addEventListener("touchcancel", () => { touching = false; moved = false; }, { passive: true });
 
-        /* DESKTOP: normal klik */
+        /* DESKTOP: klik */
         el.addEventListener("mousedown", (e) => {
           if (touching) return; // ignorér hvis dette kommer efter touch
           e.preventDefault();
@@ -345,14 +363,14 @@
 
   /* ---------- init / events ---------- */
   function init() {
-    const cvrInput = $("#cvr");
-    const next1 = $("#next1");
-    const antalEl = $("#antal");
-    const back2 = $("#back2");
-    const next2 = $("#next2");
-    const back3 = $("#back3");
-    const submitBtn = $("#submit");
-    const stickyBtn = $("#sticky-cta-btn");
+    const cvrInput   = $("#cvr");
+    const next1      = $("#next1");
+    const antalEl    = $("#antal");
+    const back2      = $("#back2");
+    const next2      = $("#next2");
+    const back3      = $("#back3");
+    const submitBtn  = $("#submit");
+    const stickyBtn  = $("#sticky-cta-btn");
 
     const handleCVRInput = debounce(async (val) => {
       const box = $("#virk-box");
@@ -454,7 +472,19 @@
     }
 
     submitBtn?.addEventListener("click", handleSubmit);
-    $("#sticky-cta-btn")?.addEventListener("click", () => submitBtn?.click());
+
+    // Sticky CTA: fokusér telefonfelt hvis tomt – ellers send
+    stickyBtn?.addEventListener("click", () => {
+      const phoneEl = $("#lead-phone");
+      const digits = (phoneEl?.value || "").replace(/\D/g, "");
+      if (!phoneEl || digits.length < 8) {
+        setStep(3);
+        phoneEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => phoneEl?.focus(), 250);
+      } else {
+        submitBtn?.click();
+      }
+    });
   }
 
   /* kick off */
