@@ -73,7 +73,9 @@
             <!-- KONTAKT (højre desktop / under pris mobil) -->
             <aside class="col-aside">
               <!-- OVERSKRIFT -> FELT -> PRIVACY -> CTA (orden låses i CSS) -->
-              <h3 class="lead-title">Lyder det interessant?<br>Så indtast dit telefonnummer</h3>
+              <h3 class="lead-title">Lyder det interessant?</h3>
+              <h4 class="lead-subtitle">Så indtast dit telefonnummer</h4>
+
 
               <div class="phone-field">
                 <label for="lead-phone">Indtast telefonnummer</label>
