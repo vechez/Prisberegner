@@ -13,7 +13,96 @@
 
   const root = document.createElement("div");
   root.className = "wrap";
-  root.innerHTML = `...`; // behold din eksisterende HTML her
+  root.innerHTML = `
+  <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
+    <div class="hdr">
+      <div class="dot" aria-hidden="true"></div>
+      <h2 class="title">Arbejdsskade - prisberegner</h2>
+    </div>
+    <div class="steps" aria-hidden="true">
+      <div class="step is" data-step="1">1. CVR</div>
+      <div class="step" data-step="2">2. Stillinger</div>
+      <div class="step" data-step="3">3. Se pris</div>
+    </div>
+    <div class="body">
+      <section class="pane" data-step="1">
+        <div class="grid">
+          <div>
+            <label for="cvr">CVR-nummer</label>
+            <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" aria-describedby="cvr-help" autocomplete="off" />
+            <div id="cvr-help" class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
+          </div>
+          <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
+          <div class="actions">
+            <button id="next1" class="btn">Næste</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane" data-step="2" hidden>
+        <div class="grid">
+          <div class="row">
+            <div>
+              <label for="antal">Antal medarbejdere</label>
+              <select id="antal" name="antal"></select>
+            </div>
+          </div>
+          <div class="hint">Vælg stilling for hver medarbejder.</div>
+          <div id="roles" class="list"></div>
+          <div class="actions">
+            <button id="back2" class="btn secondary">Tilbage</button>
+            <button id="next2" class="btn">Se pris</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane" data-step="3" hidden>
+        <div class="two-col">
+          <div class="grid">
+            <div class="kicker">Beregnet pris</div>
+            <div id="breakdown" class="grid"></div>
+            <div class="total">
+              <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
+              <div class="total-amount" id="total">0 kr.</div>
+            </div>
+            <div id="price-disclaimer" class="disclaimer">
+              Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
+            </div>
+            <div class="actions">
+              <button id="back3" class="btn secondary">Tilbage</button>
+            </div>
+          </div>
+          <aside class="grid">
+            <div class="hint">Bliv kontaktet med et tilbud. Indtast dit telefonnummer, så ringer en rådgiver dig op med en pris baseret på dine valg.</div>
+            <div>
+              <label for="lead-phone">Indtast telefonnummer</label>
+              <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" required autocomplete="tel">
+            </div>
+            <div class="hint">
+              Indtast telefonnummer og få et uforpligtende tilbud.<br><br>
+              Vi behandler din data ordentligt. 
+              <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
+            </div>
+            <div class="actions">
+              <button id="submit" class="btn">Bliv kontaktet af en rådgiver</button>
+            </div>
+            <div id="thanks-card" class="thanks-card" hidden>
+              <strong>Tak! Vi har modtaget din forespørgsel.</strong>
+              <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div id="bridge" class="bridge-overlay" aria-hidden="true">
+    <div class="bridge-box">
+      <div class="bridge-title">Beregner pris…</div>
+      <div class="meter"><span></span></div>
+      <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
+    </div>
+  </div>
+`;
   document.body.appendChild(root);
 
   const $ = (s, el = document) => el.querySelector(s);
