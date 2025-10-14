@@ -89,6 +89,10 @@ input[type="text"],input[type="tel"],select{
 
 /* Disclaimer */
 .disclaimer{font-size:12px;color:var(--muted)}
+
+/* 🚫 Skjul “Læs mere” som standard (desktop) */
+.disclaimer-toggle{display:none}
+
 /* Desktop: small width + indhak så teksten flugter med totalens indre padding */
 @media (min-width:861px){
   #price-disclaimer{max-width:680px;margin-top:10px;padding-left:14px} /* 14px = total's venstre padding */
@@ -120,11 +124,19 @@ input[type="text"],input[type="tel"],select{
     width:100%;font-size:16px;padding:12px 16px;color:#64737a;border-color:#e7eaee;background:#fff;box-shadow:none
   }
 
-  /* Læs mere: skjul tekst, vis toggle */
+  /* 📱 Læs mere: vis kun på mobil */
   #price-disclaimer{max-height:0;overflow:hidden;transition:max-height .3s ease}
   #price-disclaimer.expanded{max-height:320px}
   .disclaimer-toggle{
-    display:inline-block;margin-top:8px;color:#6b7280;font-weight:600;font-size:14px;background:none;border:none;padding:0;cursor:pointer
+    display:inline-block;
+    margin-top:8px;
+    color:#6b7280;
+    font-weight:600;
+    font-size:14px;
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
   }
   .disclaimer-toggle:hover{text-decoration:underline}
 
