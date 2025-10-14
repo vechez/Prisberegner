@@ -1,15 +1,8 @@
 (function () {
-  /* ============================
-     Konfiguration
-  ============================ */
-  const THINK_MS = 750; // ventetid mellem step 2 → 3 (ms)
+  const THINK_MS = 800;
 
-  /* ============================
-     Webflow/iframe højde (throttlet + pausable)
-  ============================ */
   let _heightTick = null, _heightTimer = null;
   let _heightPaused = false;
-
   function safePostHeight() {
     if (_heightPaused) return;
     if (_heightTick) return;
@@ -23,26 +16,18 @@
     });
   }
 
-  /* ============================
-     Markup
-  ============================ */
   const root = document.createElement("div");
   root.className = "wrap";
   root.innerHTML = `
     <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
       <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
-
-      <!-- Progress bar -->
       <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
-
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
         <div class="step" data-step="3">3. Se pris</div>
       </div>
-
       <div class="body">
-        <!-- Step 1 -->
         <section class="pane" data-step="1">
           <div class="grid">
             <div>
@@ -55,7 +40,6 @@
           </div>
         </section>
 
-        <!-- Step 2 -->
         <section class="pane" data-step="2" hidden>
           <div class="grid">
             <div class="row">
@@ -73,7 +57,6 @@
           </div>
         </section>
 
-        <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
             <div class="col-price">
@@ -92,23 +75,19 @@
             <aside class="col-aside">
               <h3 class="lead-title">Lyder det interessant?</h3>
               <h4 class="lead-subtitle">Så indtast dit telefonnummer</h4>
-
               <div class="phone-field">
                 <label for="lead-phone">Telefonnummer</label>
                 <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" autocomplete="tel">
               </div>
-
               <div class="privacy disclaimer">
                 Vi behandler din data ordentligt.
                 <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
               </div>
-
               <div class="actions cta-area">
                 <button id="submit" class="btn fullwidth">Bliv kontaktet af en rådgiver</button>
               </div>
             </aside>
           </div>
-
           <div class="actions back-row">
             <button id="back3" class="btn secondary">Tilbage</button>
           </div>
@@ -116,7 +95,6 @@
       </div>
     </div>
 
-    <!-- Bridge -->
     <div id="bridge" class="bridge-overlay" aria-hidden="true">
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
@@ -127,13 +105,9 @@
   `;
   document.body.appendChild(root);
 
-  // observer kun app-root
   new ResizeObserver(safePostHeight).observe(root);
   window.addEventListener("load", safePostHeight);
 
-  /* ============================
-     Helpers
-  ============================ */
   const $  = (s, el=document) => el.querySelector(s);
   const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
 
@@ -148,12 +122,9 @@
     return d;
   }
 
-  /* ============================
-     Data (stillinger) – lazy & cached
-  ============================ */
   let POS = [];
   let posLoaded = false, posLoading = false;
-  let SELECT_TEMPLATE = null; // build options once and clone per row
+  let SELECT_TEMPLATE = null;
 
   async function ensurePositions() {
     if (posLoaded || posLoading) return;
@@ -176,14 +147,7 @@
   function buildSelectTemplate() {
     const s = document.createElement("select");
     s.className = "role";
-    const frag = document.createDocumentFragment();
-    for (let i=0;i<POS.length;i++){
-      const o = document.createElement("option");
-      o.value = POS[i].label;
-      o.textContent = POS[i].label;
-      frag.appendChild(o);
-    }
-    s.appendChild(frag);
+    setSelectOptions(s, POS); // initial fuld liste
     SELECT_TEMPLATE = s;
   }
 
@@ -191,9 +155,19 @@
     return SELECT_TEMPLATE ? SELECT_TEMPLATE.cloneNode(true) : document.createElement("select");
   }
 
-  /* ============================
-     API
-  ============================ */
+  /* 🔎 Helper til at (gen)bygge options hurtigt */
+  function setSelectOptions(select, items){
+    const frag = document.createDocumentFragment();
+    for (let i=0;i<items.length;i++){
+      const o = document.createElement("option");
+      o.value = items[i].label;
+      o.textContent = items[i].label;
+      frag.appendChild(o);
+    }
+    select.innerHTML = "";
+    select.appendChild(frag);
+  }
+
   async function fetchVirkByCVR(cvr) {
     try {
       const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
@@ -202,50 +176,35 @@
     } catch { return null; }
   }
 
-  /* ============================
-     Progress bar
-  ============================ */
   function setProgress(step){
     const bar = $("#progress-bar");
     const pct = Math.max(1, Math.min(step,3)) / 3 * 100;
     if (bar) bar.style.width = pct + "%";
   }
 
-  /* ============================
-     Steps
-  ============================ */
   function setStep(n) {
     state.step = n;
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
     $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
     setProgress(n);
-
     try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(_) {}
     safePostHeight();
 
     if (n === 2) {
-      ensurePositions().then(() => {
-        initStep2Once();
-        syncRoleRows();
-      });
+      ensurePositions().then(() => { initStep2Once(); syncRoleRows(); });
     } else if (n === 3) {
       requestAnimationFrame(wireDisclaimerToggle);
     }
   }
 
-  /* ============================
-     “Læs mere …” toggle (Step 3 – mobil)
-  ============================ */
   let toggleWired = false;
   function wireDisclaimerToggle(){
     const disc = $("#price-disclaimer");
     const btn  = $("#price-disclaimer-toggle");
     if (!disc || !btn) return;
-
     btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
     if (toggleWired) return;
     toggleWired = true;
-
     btn.addEventListener("click", () => {
       disc.classList.toggle("expanded");
       btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
@@ -253,9 +212,6 @@
     }, { passive: true });
   }
 
-  /* ============================
-     Step 2 (hurtig, minimal DOM)
-  ============================ */
   let antalInitialized = false;
   function initStep2Once() {
     if (antalInitialized) return;
@@ -276,7 +232,6 @@
     const target = parseInt(sel.value || "1", 10);
     state.antal = target;
 
-    // init/trim state
     if (state.roles.length < target) {
       state.roles = state.roles.concat(new Array(target - state.roles.length).fill(POS[0]?.label || ""));
     } else if (state.roles.length > target) {
@@ -284,11 +239,8 @@
     }
 
     const currentRows = container.children.length;
-
-    // PAUSE height-post under batch
     _heightPaused = true;
 
-    // Add missing rows
     if (currentRows < target) {
       const frag = document.createDocumentFragment();
       for (let i=currentRows;i<target;i++){
@@ -300,11 +252,40 @@
         left.innerHTML = `<strong>Medarbejder ${i + 1}</strong>`;
 
         const right = document.createElement("div");
-        const select = cloneRoleSelect();
-        select.value = state.roles[i] || POS[0]?.label || "";
-        select.addEventListener("change", (e) => { state.roles[i] = e.target.value; }, { passive: true });
 
+        // 🔎 søgefelt
+        const search = document.createElement("input");
+        search.className = "role-search";
+        search.type = "text";
+        search.placeholder = "Søg stilling…";
+        search.autocomplete = "off";
+
+        // select
+        const select = cloneRoleSelect();
+        const startVal = state.roles[i] || POS[0]?.label || "";
+        select.value = startVal;
+
+        // søgning: filtrer POS -> rebuild options
+        const doFilter = (q) => {
+          const s = (q || "").toLowerCase().trim();
+          const items = !s ? POS : POS.filter(o => o.label.toLowerCase().includes(s));
+          setSelectOptions(select, items);
+          // vælg første match hvis nuværende værdi ikke findes i filtreret liste
+          if (!items.find(o => o.label === state.roles[i])) {
+            const nv = items[0]?.label || "";
+            select.value = nv;
+            state.roles[i] = nv;
+          } else {
+            select.value = state.roles[i];
+          }
+        };
+
+        search.addEventListener("input", (e)=> doFilter(e.target.value));
+        select.addEventListener("change", (e)=> { state.roles[i] = e.target.value; });
+
+        right.appendChild(search);
         right.appendChild(select);
+
         row.appendChild(left);
         row.appendChild(right);
         frag.appendChild(row);
@@ -312,14 +293,13 @@
       container.appendChild(frag);
     }
 
-    // Remove extra rows
     if (currentRows > target) {
       for (let i=currentRows-1; i>=target; i--){
         container.removeChild(container.lastElementChild);
       }
     }
 
-    // Update existing rows (labels/values only if needed)
+    // opdater labels + værdier
     for (let i=0; i<container.children.length; i++){
       const row = container.children[i];
       const label = row.firstElementChild?.querySelector("strong");
@@ -327,18 +307,18 @@
       const select = row.querySelector("select.role") || row.querySelector("select");
       const desired = state.roles[i] || (POS[0]?.label || "");
       if (select && select.value !== desired) select.value = desired;
+
+      // nulstil søgefeltet når vi skifter antal (ingen filter “hængende”)
+      const search = row.querySelector(".role-search");
+      if (search && search.value) { search.value = ""; setSelectOptions(select, POS); select.value = desired; }
     }
 
-    // Un-pause og post højde én gang
     requestAnimationFrame(() => {
       _heightPaused = false;
       safePostHeight();
     });
   }
 
-  /* ============================
-     Prisberegning (Step 3)
-  ============================ */
   let _priceMap = null;
   function calculateTotal() {
     const list = $("#breakdown");
@@ -369,9 +349,6 @@
     safePostHeight();
   }
 
-  /* ============================
-     API: CVR
-  ============================ */
   async function fetchVirkByCVRThrottled(val, box) {
     if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
     box.textContent = "Henter virksomhedsdata…";
@@ -400,9 +377,6 @@
     safePostHeight();
   }
 
-  /* ============================
-     Init & events
-  ============================ */
   function init() {
     const cvrInput = $("#cvr");
     const next1 = $("#next1");
@@ -437,9 +411,7 @@
       const byLabel = new Map(POS.map(o => [o.label, o.price]));
       const bad = state.roles.findIndex(r => !byLabel.has(r));
       if (bad !== -1) { alert("Vælg en gyldig stilling for medarbejder " + (bad + 1)); return; }
-
       calculateTotal();
-
       const bridge = $("#bridge");
       bridge.classList.add("show");
       setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, THINK_MS);
@@ -486,15 +458,10 @@
 
   init();
 
-  /* ============================
-     Prefetch positions on idle
-  ============================ */
   if ("requestIdleCallback" in window) {
     requestIdleCallback(() => ensurePositions().catch(() => {}));
   } else {
     setTimeout(() => ensurePositions().catch(() => {}), 500);
   }
-
-  /* start i step 1 progress */
   setProgress(1);
 })();
