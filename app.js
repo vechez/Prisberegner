@@ -1,6 +1,12 @@
 (function () {
-  const THINK_MS = 800;
+  /* --------------------------------------------
+   * Konfiguration
+   * ------------------------------------------ */
+  const THINK_MS = 750; // ventetid fra step 2 -> 3 (”beregner pris…”)
 
+  /* --------------------------------------------
+   * Height-posting til Webflow (smooth + debounced)
+   * ------------------------------------------ */
   let _heightTick = null, _heightTimer = null;
   let _heightPaused = false;
   function safePostHeight() {
@@ -16,6 +22,9 @@
     });
   }
 
+  /* --------------------------------------------
+   * Markup
+   * ------------------------------------------ */
   const root = document.createElement("div");
   root.className = "wrap";
   root.innerHTML = `
@@ -27,7 +36,9 @@
         <div class="step" data-step="2">2. Stillinger</div>
         <div class="step" data-step="3">3. Se pris</div>
       </div>
+
       <div class="body">
+        <!-- Step 1 -->
         <section class="pane" data-step="1">
           <div class="grid">
             <div>
@@ -40,6 +51,7 @@
           </div>
         </section>
 
+        <!-- Step 2 -->
         <section class="pane" data-step="2" hidden>
           <div class="grid">
             <div class="row">
@@ -57,15 +69,18 @@
           </div>
         </section>
 
+        <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
             <div class="col-price">
               <div class="kicker">Vejledende pris</div>
               <div id="breakdown" class="grid role-list"></div>
+
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
+
               <div id="price-disclaimer" class="disclaimer">
                 Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
@@ -88,6 +103,7 @@
               </div>
             </aside>
           </div>
+
           <div class="actions back-row">
             <button id="back3" class="btn secondary">Tilbage</button>
           </div>
@@ -95,6 +111,7 @@
       </div>
     </div>
 
+    <!-- Loader/bridge -->
     <div id="bridge" class="bridge-overlay" aria-hidden="true">
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
@@ -108,6 +125,9 @@
   new ResizeObserver(safePostHeight).observe(root);
   window.addEventListener("load", safePostHeight);
 
+  /* --------------------------------------------
+   * Helpers & state
+   * ------------------------------------------ */
   const $  = (s, el=document) => el.querySelector(s);
   const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
 
@@ -122,9 +142,9 @@
     return d;
   }
 
+  /* Data: stillinger */
   let POS = [];
   let posLoaded = false, posLoading = false;
-  let SELECT_TEMPLATE = null;
 
   async function ensurePositions() {
     if (posLoaded || posLoading) return;
@@ -133,41 +153,15 @@
       const r = await fetch("positions.json", { cache: "no-cache" });
       const d = await r.json();
       POS = (d || []).sort((a,b)=>a.label.localeCompare(b.label,"da"));
-      buildSelectTemplate();
-      posLoaded = true;
     } catch(_) {
       POS = [];
-      buildSelectTemplate();
-      posLoaded = true;
     } finally {
+      posLoaded = true;
       posLoading = false;
     }
   }
 
-  function buildSelectTemplate() {
-    const s = document.createElement("select");
-    s.className = "role";
-    setSelectOptions(s, POS); // initial fuld liste
-    SELECT_TEMPLATE = s;
-  }
-
-  function cloneRoleSelect() {
-    return SELECT_TEMPLATE ? SELECT_TEMPLATE.cloneNode(true) : document.createElement("select");
-  }
-
-  /* 🔎 Helper til at (gen)bygge options hurtigt */
-  function setSelectOptions(select, items){
-    const frag = document.createDocumentFragment();
-    for (let i=0;i<items.length;i++){
-      const o = document.createElement("option");
-      o.value = items[i].label;
-      o.textContent = items[i].label;
-      frag.appendChild(o);
-    }
-    select.innerHTML = "";
-    select.appendChild(frag);
-  }
-
+  /* CVR API */
   async function fetchVirkByCVR(cvr) {
     try {
       const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
@@ -176,12 +170,14 @@
     } catch { return null; }
   }
 
+  /* Progress */
   function setProgress(step){
     const bar = $("#progress-bar");
     const pct = Math.max(1, Math.min(step,3)) / 3 * 100;
     if (bar) bar.style.width = pct + "%";
   }
 
+  /* Steps */
   function setStep(n) {
     state.step = n;
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
@@ -197,6 +193,7 @@
     }
   }
 
+  /* Læs mere toggle (mobil) */
   let toggleWired = false;
   function wireDisclaimerToggle(){
     const disc = $("#price-disclaimer");
@@ -212,6 +209,7 @@
     }, { passive: true });
   }
 
+  /* Step 2 init */
   let antalInitialized = false;
   function initStep2Once() {
     if (antalInitialized) return;
@@ -224,6 +222,62 @@
     antalInitialized = true;
   }
 
+  /* 🔎 Søgbart role-felt (custom combobox) */
+  function createRoleSelect(index) {
+    const wrap = document.createElement("div");
+    wrap.className = "role-combobox";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Søg stilling…";
+    input.className = "role-input";
+    input.value = state.roles[index] || "";
+
+    const list = document.createElement("ul");
+    list.className = "role-dropdown";
+    list.hidden = true;
+
+    const renderList = (filter = "") => {
+      const q = filter.toLowerCase();
+      const results = POS.filter(o => o.label.toLowerCase().includes(q)).slice(0, 60);
+      list.innerHTML = results.length
+        ? results.map(r => `<li>${r.label}</li>`).join("")
+        : "<li class='empty'>Ingen resultater</li>";
+    };
+
+    // første render
+    renderList();
+
+    input.addEventListener("focus", () => { list.hidden = false; renderList(input.value); });
+    input.addEventListener("input", () => renderList(input.value));
+    input.addEventListener("keydown", (e) => {
+      // enter vælger første match
+      if (e.key === "Enter") {
+        const first = list.querySelector("li:not(.empty)");
+        if (first) {
+          input.value = first.textContent;
+          state.roles[index] = first.textContent;
+          list.hidden = true;
+          e.preventDefault();
+        }
+      }
+    });
+    input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 130));
+
+    list.addEventListener("mousedown", (e) => {
+      if (e.target.tagName === "LI" && !e.target.classList.contains("empty")) {
+        input.value = e.target.textContent;
+        state.roles[index] = e.target.textContent;
+        list.hidden = true;
+      }
+    });
+
+    wrap.appendChild(input);
+    wrap.appendChild(list);
+    return wrap;
+  }
+
+  /* Synk rolle-rækker (step 2) */
   function syncRoleRows() {
     const sel = $("#antal");
     const container = $("#roles");
@@ -238,87 +292,26 @@
       state.roles.length = target;
     }
 
-    const currentRows = container.children.length;
-    _heightPaused = true;
+    container.innerHTML = "";
+    for (let i = 0; i < target; i++) {
+      const row = document.createElement("div");
+      row.className = "item";
+      row.setAttribute("data-idx", String(i));
 
-    if (currentRows < target) {
-      const frag = document.createDocumentFragment();
-      for (let i=currentRows;i<target;i++){
-        const row = document.createElement("div");
-        row.className = "item";
-        row.setAttribute("data-idx", String(i));
+      const left = document.createElement("div");
+      left.innerHTML = `<strong>Medarbejder ${i + 1}</strong>`;
 
-        const left = document.createElement("div");
-        left.innerHTML = `<strong>Medarbejder ${i + 1}</strong>`;
+      const right = document.createElement("div");
+      right.appendChild(createRoleSelect(i));
 
-        const right = document.createElement("div");
-
-        // 🔎 søgefelt
-        const search = document.createElement("input");
-        search.className = "role-search";
-        search.type = "text";
-        search.placeholder = "Søg stilling…";
-        search.autocomplete = "off";
-
-        // select
-        const select = cloneRoleSelect();
-        const startVal = state.roles[i] || POS[0]?.label || "";
-        select.value = startVal;
-
-        // søgning: filtrer POS -> rebuild options
-        const doFilter = (q) => {
-          const s = (q || "").toLowerCase().trim();
-          const items = !s ? POS : POS.filter(o => o.label.toLowerCase().includes(s));
-          setSelectOptions(select, items);
-          // vælg første match hvis nuværende værdi ikke findes i filtreret liste
-          if (!items.find(o => o.label === state.roles[i])) {
-            const nv = items[0]?.label || "";
-            select.value = nv;
-            state.roles[i] = nv;
-          } else {
-            select.value = state.roles[i];
-          }
-        };
-
-        search.addEventListener("input", (e)=> doFilter(e.target.value));
-        select.addEventListener("change", (e)=> { state.roles[i] = e.target.value; });
-
-        right.appendChild(search);
-        right.appendChild(select);
-
-        row.appendChild(left);
-        row.appendChild(right);
-        frag.appendChild(row);
-      }
-      container.appendChild(frag);
+      row.appendChild(left);
+      row.appendChild(right);
+      container.appendChild(row);
     }
-
-    if (currentRows > target) {
-      for (let i=currentRows-1; i>=target; i--){
-        container.removeChild(container.lastElementChild);
-      }
-    }
-
-    // opdater labels + værdier
-    for (let i=0; i<container.children.length; i++){
-      const row = container.children[i];
-      const label = row.firstElementChild?.querySelector("strong");
-      if (label && label.textContent !== `Medarbejder ${i+1}`) label.textContent = `Medarbejder ${i+1}`;
-      const select = row.querySelector("select.role") || row.querySelector("select");
-      const desired = state.roles[i] || (POS[0]?.label || "");
-      if (select && select.value !== desired) select.value = desired;
-
-      // nulstil søgefeltet når vi skifter antal (ingen filter “hængende”)
-      const search = row.querySelector(".role-search");
-      if (search && search.value) { search.value = ""; setSelectOptions(select, POS); select.value = desired; }
-    }
-
-    requestAnimationFrame(() => {
-      _heightPaused = false;
-      safePostHeight();
-    });
+    safePostHeight();
   }
 
+  /* Pris */
   let _priceMap = null;
   function calculateTotal() {
     const list = $("#breakdown");
@@ -349,6 +342,7 @@
     safePostHeight();
   }
 
+  /* CVR fetch m. debounce */
   async function fetchVirkByCVRThrottled(val, box) {
     if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
     box.textContent = "Henter virksomhedsdata…";
@@ -377,6 +371,7 @@
     safePostHeight();
   }
 
+  /* Init events */
   function init() {
     const cvrInput = $("#cvr");
     const next1 = $("#next1");
@@ -458,6 +453,7 @@
 
   init();
 
+  // Preload stillinger stille og roligt
   if ("requestIdleCallback" in window) {
     requestIdleCallback(() => ensurePositions().catch(() => {}));
   } else {
