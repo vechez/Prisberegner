@@ -43,9 +43,9 @@
         <section class="pane" data-step="1">
           <div class="grid">
             <div>
-              <label for="cvr">CVR-nummer</label>
+              <label for="cvr">Indtast CVR-nummer</label>
               <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" autocomplete="off" />
-              <div class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
+              <div class="hint">Vi henter automatisk data fra VIRK.</div>
             </div>
             <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
             <div class="actions"><button id="next1" class="btn">Næste</button></div>
@@ -74,7 +74,7 @@
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
             <div class="col-price">
-              <div class="kicker">Beregnet pris</div>
+              <div class="kicker">Vejledende pris</div>
               <div id="breakdown" class="grid role-list"></div>
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
@@ -118,7 +118,7 @@
       <div class="bridge-box">
         <div class="bridge-title">Beregner pris…</div>
         <div class="meter"><span></span></div>
-        <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
+        <div class="bridge-hint">Et øjeblik – vi beregner en pris</div>
       </div>
     </div>
   `;
@@ -366,7 +366,7 @@
     const v = await fetchVirkByCVR(val);
 
     if (v?.kvote) {
-      box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
+      box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt</div>';
       safePostHeight(); return;
     }
 
