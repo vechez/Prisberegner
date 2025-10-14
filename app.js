@@ -53,8 +53,22 @@
         <!-- Step 3 -->
         <section class="pane" data-step="3" hidden>
           <div class="two-col">
-            <!-- ASIDE FØRST for mobil (kontakt før pris) -->
-            <aside class="grid">
+            <!-- Pris-kolonne (venstre desktop / øverst mobil) -->
+            <div class="grid col-price">
+              <div class="kicker">Beregnet pris</div>
+              <div id="breakdown" class="grid"></div>
+              <div class="total">
+                <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
+                <div class="total-amount" id="total">0 kr.</div>
+              </div>
+              <div id="price-disclaimer" class="disclaimer">
+                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
+              </div>
+              <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
+            </div>
+
+            <!-- Kontakt-kolonne (højre desktop / under pris mobil) -->
+            <aside class="grid col-aside">
               <div class="lead-title">Lyder det interessant? Så indtast dit telefonnummer</div>
               <div>
                 <label for="lead-phone">Indtast telefonnummer</label>
@@ -70,20 +84,6 @@
                 <div class="muted">En rådgiver kontakter dig telefonisk inden for 24 timer på hverdage.</div>
               </div>
             </aside>
-
-            <!-- PRIS-DEL -->
-            <div class="grid">
-              <div class="kicker">Beregnet pris</div>
-              <div id="breakdown" class="grid"></div>
-              <div class="total">
-                <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
-                <div class="total-amount" id="total">0 kr.</div>
-              </div>
-              <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
-              </div>
-              <div class="actions"><button id="back3" class="btn secondary">Tilbage</button></div>
-            </div>
           </div>
         </section>
       </div>
@@ -437,7 +437,8 @@
         .catch(() => {});
 
       submitBtn?.setAttribute("disabled", "true");
-      phoneEl?.setAttribute("disabled", "true");
+      const phoneEl2 = $("#lead-phone");
+      phoneEl2?.setAttribute("disabled", "true");
       $("#thanks-card").hidden = false;
 
       const sticky = $("#sticky-cta");
