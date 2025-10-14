@@ -389,7 +389,7 @@
 
       const bridge = $("#bridge");
       bridge.classList.add("show");
-      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 200);
+      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 800);
     });
 
     back3 && (back3.onclick = () => setStep(2));
