@@ -1,21 +1,31 @@
 (function () {
-  /* ---------- Webflow/iframe height (throttled) ---------- */
+  /* ============================
+     Konfiguration
+  ============================ */
+  const THINK_MS = 800; // “tænke”-tid mellem step 2 → 3 (ms). Justér frit.
+
+  /* ============================
+     Webflow/iframe højde (throttlet + pausable)
+  ============================ */
   let _heightTick = null, _heightTimer = null;
+  let _heightPaused = false;
+
   function safePostHeight() {
-    if (_heightTick) return;
+    if (_heightPaused) return;      // respekter pause under batch
+    if (_heightTick) return;        // saml flere kald i samme frame
     _heightTick = requestAnimationFrame(() => {
       _heightTick = null;
       if (_heightTimer) clearTimeout(_heightTimer);
       _heightTimer = setTimeout(() => {
         const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
-      }, 140); // relaxed to avoid thrash while building rows
+      }, 90); // kan sættes til 60–140 afhængigt af embed
     });
   }
-  new ResizeObserver(safePostHeight).observe(document.documentElement);
-  window.addEventListener("load", safePostHeight);
 
-  /* ---------- markup ---------- */
+  /* ============================
+     Markup
+  ============================ */
   const root = document.createElement("div");
   root.className = "wrap";
   root.innerHTML = `
@@ -114,7 +124,13 @@
   `;
   document.body.appendChild(root);
 
-  /* ---------- helpers ---------- */
+  // OBS: observer KUN din app-root (mindre støj end hele documentElement)
+  new ResizeObserver(safePostHeight).observe(root);
+  window.addEventListener("load", safePostHeight);
+
+  /* ============================
+     Helpers
+  ============================ */
   const $  = (s, el=document) => el.querySelector(s);
   const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
 
@@ -129,7 +145,9 @@
     return d;
   }
 
-  /* ---------- data (stillinger) – lazy & cached ---------- */
+  /* ============================
+     Data (stillinger) – lazy & cached
+  ============================ */
   let POS = [];
   let posLoaded = false, posLoading = false;
   let SELECT_TEMPLATE = null; // build options once and clone per row
@@ -170,7 +188,9 @@
     return SELECT_TEMPLATE ? SELECT_TEMPLATE.cloneNode(true) : document.createElement("select");
   }
 
-  /* ---------- API ---------- */
+  /* ============================
+     API
+  ============================ */
   async function fetchVirkByCVR(cvr) {
     try {
       const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
@@ -179,7 +199,9 @@
     } catch { return null; }
   }
 
-  /* ---------- steps ---------- */
+  /* ============================
+     Steps
+  ============================ */
   function setStep(n) {
     state.step = n;
     $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
@@ -198,15 +220,18 @@
     }
   }
 
-  /* ---------- Læs mere toggle ---------- */
+  /* ============================
+     “Læs mere …” toggle (Step 3)
+  ============================ */
   let toggleWired = false;
   function wireDisclaimerToggle(){
     const disc = $("#price-disclaimer");
     const btn  = $("#price-disclaimer-toggle");
     if (!disc || !btn) return;
 
+    // reset label hver gang vi lander på step 3
     btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-    if (toggleWired) return;
+    if (toggleWired) return; // bind kun én gang
     toggleWired = true;
 
     btn.addEventListener("click", () => {
@@ -216,7 +241,9 @@
     }, { passive: true });
   }
 
-  /* ---------- Step 2 (fast) ---------- */
+  /* ============================
+     Step 2 (hurtig, minimal DOM)
+  ============================ */
   let antalInitialized = false;
   function initStep2Once() {
     if (antalInitialized) return;
@@ -225,7 +252,7 @@
       sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
       sel.value = "1";
     }
-    sel?.addEventListener("change", syncRoleRows);
+    sel?.addEventListener("change", () => { syncRoleRows(); safePostHeight(); });
     antalInitialized = true;
   }
 
@@ -237,6 +264,7 @@
     const target = parseInt(sel.value || "1", 10);
     state.antal = target;
 
+    // init/trim state
     if (state.roles.length < target) {
       state.roles = state.roles.concat(new Array(target - state.roles.length).fill(POS[0]?.label || ""));
     } else if (state.roles.length > target) {
@@ -244,6 +272,9 @@
     }
 
     const currentRows = container.children.length;
+
+    // PAUSE height-post under batch
+    _heightPaused = true;
 
     // Add missing rows
     if (currentRows < target) {
@@ -286,10 +317,16 @@
       if (select && select.value !== desired) select.value = desired;
     }
 
-    safePostHeight();
+    // Un-pause og post højde én gang
+    requestAnimationFrame(() => {
+      _heightPaused = false;
+      safePostHeight();
+    });
   }
 
-  /* ---------- beregning ---------- */
+  /* ============================
+     Prisberegning (Step 3)
+  ============================ */
   let _priceMap = null;
   function calculateTotal() {
     const list = $("#breakdown");
@@ -320,7 +357,9 @@
     safePostHeight();
   }
 
-  /* ---------- API: CVR ---------- */
+  /* ============================
+     API: CVR
+  ============================ */
   async function fetchVirkByCVRThrottled(val, box) {
     if (val.length !== 8) { box.textContent = "Indtast 8 cifre for CVR."; return; }
     box.textContent = "Henter virksomhedsdata…";
@@ -349,7 +388,9 @@
     safePostHeight();
   }
 
-  /* ---------- init / events ---------- */
+  /* ============================
+     Init & events
+  ============================ */
   function init() {
     const cvrInput = $("#cvr");
     const next1 = $("#next1");
@@ -376,7 +417,7 @@
       setStep(2);
     });
 
-    antalEl?.addEventListener("change", syncRoleRows);
+    antalEl?.addEventListener("change", () => { syncRoleRows(); safePostHeight(); });
     back2 && (back2.onclick = () => setStep(1));
 
     next2 && (next2.onclick = () => {
@@ -389,7 +430,7 @@
 
       const bridge = $("#bridge");
       bridge.classList.add("show");
-      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, 750);
+      setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, THINK_MS);
     });
 
     back3 && (back3.onclick = () => setStep(2));
@@ -433,7 +474,9 @@
 
   init();
 
-  /* ---------- Prefetch positions on idle (so Step 2 is instant) ---------- */
+  /* ============================
+     Prefetch positions on idle (Step 2 bliver instant)
+  ============================ */
   if ("requestIdleCallback" in window) {
     requestIdleCallback(() => ensurePositions().catch(() => {}));
   } else {
