@@ -2,7 +2,7 @@
   /* ============================
      Konfiguration
   ============================ */
-  const THINK_MS = 800; // “tænke”-tid mellem step 2 → 3 (ms). Justér frit.
+  const THINK_MS = 750; // “tænke”-tid mellem step 2 → 3 (ms). Justér frit.
 
   /* ============================
      Webflow/iframe højde (throttlet + pausable)
@@ -81,7 +81,7 @@
                 <div class="total-amount" id="total">0 kr.</div>
               </div>
               <div id="price-disclaimer" class="disclaimer">
-                Prisen er årlig og inkluderer alle gebyrer og afgifter. Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
+                Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
               </div>
               <button id="price-disclaimer-toggle" class="disclaimer-toggle" type="button">Læs mere …</button>
             </div>
