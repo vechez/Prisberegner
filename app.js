@@ -58,6 +58,16 @@
             <div class="grid">
               <div class="kicker">Fra-priser</div>
               <div id="breakdown" class="grid"></div>
+              <div class="kicker">Fra-priser</div>
+<div id="breakdown" class="grid"></div>
+
+<!-- Trustpilot Rating -->
+<div class="trust">
+  <img src="trustpilot-stars.svg" alt="Trustpilot 4.9 ud af 5 stjerner" class="trust-logo" loading="lazy">
+  <span class="trust-text">Trustpilot 4.9 / 5 ⭐⭐⭐⭐⭐</span>
+</div>
+
+<div class="total">
               <div class="total">
                 <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
                 <div class="total-amount" id="total">0 kr.</div>
