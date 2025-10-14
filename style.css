@@ -160,3 +160,37 @@ input[type="text"], input[type="tel"], select {
   /* dropdown bedre scroll */
   .combo-list { max-height: 50vh; transform: translateZ(0); }
 }
+/* --- Mobil: "Læs mere" til disclaimer og fast "Tilbage"-knap --- */
+@media (max-width: 860px) {
+  /* Sammenklappelig disclaimer */
+  .disclaimer.collapsible {
+    position: relative;
+    font-size: 13px;
+    color: var(--muted);
+    overflow: hidden;
+    max-height: 60px;
+    transition: max-height 0.3s ease;
+  }
+  .disclaimer.collapsible.expanded {
+    max-height: 300px;
+  }
+  .disclaimer-toggle {
+    display: block;
+    font-weight: 700;
+    color: var(--cta);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  /* Fast "Tilbage"-knap nederst i kortet */
+  .mobile-back-fixed {
+    position: sticky;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    background: #fff;
+    padding: 12px 0 4px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid var(--border);
+    z-index: 5;
+  }
+}
