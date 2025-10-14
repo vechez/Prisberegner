@@ -221,3 +221,34 @@ input[type="text"],input[type="tel"],select{
     font-size: 20px;
   }
 }
+@media (max-width: 860px) {
+  /* Mobilvisning: dropdown scroll fix + stabilitet */
+  .combo-list {
+    max-height: 180px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateY(0);
+    z-index: 1000;
+  }
+
+  .combobox {
+    position: relative;
+    z-index: 100;
+  }
+
+  input:focus + .combo-list {
+    max-height: 180px;
+    overflow-y: auto;
+    scroll-padding-bottom: 200px;
+  }
+
+  html, body {
+    overscroll-behavior-y: contain;
+  }
+
+  /* Ekstra spacing på dropdown-felt */
+  .combo-input {
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
