@@ -155,7 +155,7 @@
   }
 
   /* ---------- combobox (scroll-safe på mobil) ---------- */
-function makeCombo(host, idx) {
+  function makeCombo(host, idx) {
   host.className = "combobox";
   host.innerHTML =
     '<input class="combo-input" role="combobox" aria-expanded="false" aria-autocomplete="list" placeholder="Søg/skriv og vælg stilling">' +
@@ -271,7 +271,6 @@ function makeCombo(host, idx) {
       if (touching) { e.preventDefault(); return; }
     });
   }
-
   const render = (items) => {
     list.innerHTML = "";
     (items || []).slice(0, 300).forEach((o, i) => {
@@ -315,7 +314,7 @@ function makeCombo(host, idx) {
 
   document.addEventListener("pointerdown", (e) => { if (open && !host.contains(e.target)) closeList(); }, { passive: true });
   input.addEventListener("blur", () => setTimeout(() => { if (open) closeList(); }, 50));
-}
+  }
   /* ---------- step 2 UI ---------- */
   function renderRoleSelectors() {
     const sel = $("#antal");
