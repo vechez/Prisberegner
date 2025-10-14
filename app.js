@@ -2,7 +2,7 @@
   /* --------------------------------------------
    * Konfiguration
    * ------------------------------------------ */
-  const THINK_MS = 1100; // ventetid fra step 2 -> 3 (”beregner pris…”)
+  const THINK_MS = 800; // ventetid fra step 2 -> 3 (“beregner pris…”)
 
   /* --------------------------------------------
    * Height-posting til Webflow (smooth + debounced)
@@ -19,6 +19,42 @@
         const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
         try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
       }, 90);
+    });
+  }
+
+  /* --------------------------------------------
+   * Toasts (moderne røde/grønne popups)
+   * ------------------------------------------ */
+  const toastStack = document.createElement("div");
+  toastStack.id = "toast-stack";
+  document.body.appendChild(toastStack);
+
+  function toast(message, type = "info", ms = 4000) {
+    const el = document.createElement("div");
+    el.className = `toast toast--${type}`;
+    el.innerHTML = `
+      <div class="toast__icon"></div>
+      <div class="toast__msg">${message}</div>
+      <button class="toast__close" aria-label="Luk">×</button>
+    `;
+    toastStack.appendChild(el);
+
+    // enter animation
+    requestAnimationFrame(() => el.classList.add("is-in"));
+
+    const remove = () => {
+      el.classList.remove("is-in");
+      el.classList.add("is-out");
+      setTimeout(() => el.remove(), 200);
+    };
+
+    const t = setTimeout(remove, ms);
+    el.querySelector(".toast__close").addEventListener("click", () => {
+      clearTimeout(t);
+      remove();
+    });
+    el.addEventListener("click", (e) => {
+      if (e.target === el) { clearTimeout(t); remove(); }
     });
   }
 
@@ -284,7 +320,7 @@
     const target = parseInt(sel.value || "1", 10);
     state.antal = target;
 
-    // 👉 start tomt (i stedet for POS[0].label)
+    // start TOMT (ikke POS[0])
     if (state.roles.length < target) {
       state.roles = state.roles.concat(new Array(target - state.roles.length).fill(""));
     } else if (state.roles.length > target) {
@@ -354,7 +390,7 @@
 
     if (v && (v.navn || v.name || v.cvr)) {
       state.virk = v; state.cvr = val;
-      const navn = v.navn || v.name || "-";
+      const navn = v.navn eller v.name || "-";
       const adresse = v.adresse || v.address || "-";
       const branche = v.branche || v.industrydesc;
       const branchekode = v.branchekode || v.industrycode;
@@ -393,7 +429,7 @@
 
     next1?.addEventListener("click", () => {
       const val = cleanCVR(cvrInput?.value);
-      if (val.length !== 8) { alert("Udfyld et gyldigt CVR-nummer."); return; }
+      if (val.length !== 8) { toast("Udfyld et gyldigt CVR-nummer (8 cifre).", "error"); return; }
       setStep(2);
     });
 
@@ -404,7 +440,7 @@
       _priceMap = null;
       const byLabel = new Map(POS.map(o => [o.label, o.price]));
       const bad = state.roles.findIndex(r => !byLabel.has(r));
-      if (bad !== -1) { alert("Vælg en gyldig stilling for medarbejder " + (bad + 1)); return; }
+      if (bad !== -1) { toast("Vælg en gyldig stilling for medarbejder " + (bad + 1), "error"); return; }
       calculateTotal();
       const bridge = $("#bridge");
       bridge.classList.add("show");
@@ -416,7 +452,7 @@
     submitBtn?.addEventListener("click", () => {
       const phoneEl = $("#lead-phone");
       const normalized = normalizeDkPhone(phoneEl?.value || "");
-      if (normalized.length !== 8) { alert("Skriv et dansk telefonnummer på 8 cifre."); phoneEl?.focus(); return; }
+      if (normalized.length !== 8) { toast("Skriv et dansk telefonnummer på 8 cifre.", "error"); phoneEl?.focus(); return; }
       if (phoneEl) phoneEl.value = normalized;
 
       const urlp = new URLSearchParams(location.search);
@@ -442,6 +478,7 @@
       submitBtn.setAttribute("disabled", "true");
       phoneEl?.setAttribute("disabled", "true");
       submitBtn.textContent = "Tak! Vi kontakter dig";
+      toast("Tak! Vi kontakter dig snarest.", "success", 3500);
 
       try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
       try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
