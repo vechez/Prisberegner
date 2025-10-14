@@ -17,7 +17,10 @@
   root.className = "wrap";
   root.innerHTML = `
     <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
-      <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
+      <div class="hdr">
+  <img class="brand" src="logo.png" alt="Fælles Forsikring" loading="lazy">
+  <h2 class="title">Arbejdsskade - prisberegner</h2>
+</div>
       <div class="steps" aria-hidden="true">
         <div class="step is" data-step="1">1. CVR</div>
         <div class="step" data-step="2">2. Stillinger</div>
