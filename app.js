@@ -24,8 +24,13 @@
         _heightTick = null;
         if (_heightTimer) clearTimeout(_heightTimer);
         _heightTimer = setTimeout(() => {
-          const h = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-          try { parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*"); } catch (_) {}
+          const h = Math.max(
+            document.documentElement.scrollHeight,
+            document.body.scrollHeight
+          );
+          try {
+            parent.postMessage({ type: "FF_CALC_HEIGHT", height: h }, "*");
+          } catch (_) {}
         }, 90);
       });
     }
@@ -40,17 +45,29 @@
     function toast(message, type = "info", ms = 4000) {
       const el = document.createElement("div");
       el.className = `toast toast--${type}`;
-      el.innerHTML = `
-        <div class="toast__icon"></div>
-        <div class="toast__msg">${message}</div>
-        <button class="toast__close" aria-label="Luk">×</button>
-      `;
+      el.innerHTML = (
+        '<div class="toast__icon"></div>' +
+        `<div class="toast__msg">${message}</div>` +
+        '<button class="toast__close" aria-label="Luk">×</button>'
+      );
       toastStack.appendChild(el);
       requestAnimationFrame(() => el.classList.add("is-in"));
-      const remove = () => { el.classList.remove("is-in"); el.classList.add("is-out"); setTimeout(() => el.remove(), 200); };
+      const remove = () => {
+        el.classList.remove("is-in");
+        el.classList.add("is-out");
+        setTimeout(() => el.remove(), 200);
+      };
       const t = setTimeout(remove, ms);
-      el.querySelector(".toast__close").addEventListener("click", () => { clearTimeout(t); remove(); });
-      el.addEventListener("click", (e) => { if (e.target === el) { clearTimeout(t); remove(); } });
+      el.querySelector(".toast__close").addEventListener("click", () => {
+        clearTimeout(t);
+        remove();
+      });
+      el.addEventListener("click", (e) => {
+        if (e.target === el) {
+          clearTimeout(t);
+          remove();
+        }
+      });
     }
 
     /* --------------------------------------------
@@ -58,99 +75,87 @@
      * ------------------------------------------ */
     const root = document.createElement("div");
     root.className = "wrap";
-    root.innerHTML = `
-      <div class="card" role="region" aria-label="Arbejdsskade - prisberegner">
-        <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>
-        <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
-        <div class="steps" aria-hidden="true">
-          <div class="step is" data-step="1">1. CVR</div>
-          <div class="step" data-step="2">2. Stillinger</div>
-          <div class="step" data-step="3">3. Se pris</div>
-        </div>
-
-        <div class="body">
-          <!-- Step 1 -->
-          <section class="pane" data-step="1">
-            <div class="grid">
-              <div>
-                <label for="cvr">CVR-nummer</label>
-                <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" autocomplete="off" />
-                <div class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>
-              </div>
-              <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>
-              <div class="actions"><button id="next1" class="btn">Næste</button></div>
-            </div>
-          </section>
-
-          <!-- Step 2 -->
-          <section class="pane" data-step="2" hidden>
-            <div class="grid">
-              <div class="row">
-                <div>
-                  <label for="antal">Antal medarbejdere</label>
-                  <select id="antal" name="antal"></select>
-                </div>
-              </div>
-              <div class="hint">Vælg stilling for hver medarbejder.</div>
-              <div id="roles" class="list"></div>
-              <div class="actions">
-                <button id="back2" class="btn secondary">Tilbage</button>
-                <button id="next2" class="btn">Se pris</button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Step 3 -->
-          <section class="pane" data-step="3" hidden>
-            <div class="two-col">
-              <div class="col-price">
-                <div class="kicker">Vejledende pris</div>
-                <div id="breakdown" class="grid role-list"></div>
-
-                <div class="total">
-                  <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>
-                  <div class="total-amount" id="total">0 kr.</div>
-                </div>
-
-                <div id="price-disclaimer" class="disclaimer">
-                  Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.
-                </div>
-                <button id="price-disclaimer-toggle" class="disclaimer-toggle" type="button">Læs mere …</button>
-              </div>
-
-              <aside class="col-aside">
-                <h3 class="lead-title">Lyder det interessant?</h3>
-                <h4 class="lead-subtitle">Så indtast dit telefonnummer</h4>
-                <div class="phone-field">
-                  <label for="lead-phone">Telefonnummer</label>
-                  <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" autocomplete="tel">
-                </div>
-                <div class="privacy disclaimer">
-                  Vi behandler din data ordentligt.
-                  <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.
-                </div>
-                <div class="actions cta-area">
-                  <button id="submit" class="btn fullwidth">Bliv kontaktet af en rådgiver</button>
-                </div>
-              </aside>
-            </div>
-
-            <div class="actions back-row">
-              <button id="back3" class="btn secondary">Tilbage</button>
-            </div>
-          </section>
-        </div>
-      </div>
-
-      <!-- Loader/bridge -->
-      <div id="bridge" class="bridge-overlay" aria-hidden="true">
-        <div class="bridge-box">
-          <div class="bridge-title">Beregner pris…</div>
-          <div class="meter"><span></span></div>
-          <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>
-        </div>
-      </div>
-    `;
+    root.innerHTML = [
+      '<div class="card" role="region" aria-label="Arbejdsskade - prisberegner">',
+      '  <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>',
+      '  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>',
+      '  <div class="steps" aria-hidden="true">',
+      '    <div class="step is" data-step="1">1. CVR</div>',
+      '    <div class="step" data-step="2">2. Stillinger</div>',
+      '    <div class="step" data-step="3">3. Se pris</div>',
+      "  </div>",
+      '  <div class="body">',
+      '    <section class="pane" data-step="1">',
+      '      <div class="grid">',
+      "        <div>",
+      '          <label for="cvr">CVR-nummer</label>',
+      '          <input id="cvr" name="cvr" type="text" inputmode="numeric" placeholder="XXXXXXXX" maxlength="8" autocomplete="off" />',
+      '          <div class="hint">Indtast CVR (8 cifre) – vi henter automatisk data fra VIRK.</div>',
+      "        </div>",
+      '        <div id="virk-box" class="review muted" aria-live="polite">Ingen virksomhedsdata endnu.</div>',
+      '        <div class="actions"><button id="next1" class="btn">Næste</button></div>',
+      "      </div>",
+      "    </section>",
+      '    <section class="pane" data-step="2" hidden>',
+      '      <div class="grid">',
+      '        <div class="row">',
+      "          <div>",
+      '            <label for="antal">Antal medarbejdere</label>',
+      '            <select id="antal" name="antal"></select>',
+      "          </div>",
+      "        </div>",
+      '        <div class="hint">Vælg stilling for hver medarbejder.</div>',
+      '        <div id="roles" class="list"></div>',
+      '        <div class="actions">',
+      '          <button id="back2" class="btn secondary">Tilbage</button>',
+      '          <button id="next2" class="btn">Se pris</button>',
+      "        </div>",
+      "      </div>",
+      "    </section>",
+      '    <section class="pane" data-step="3" hidden>',
+      '      <div class="two-col">',
+      '        <div class="col-price">',
+      '          <div class="kicker">Vejledende pris</div>',
+      '          <div id="breakdown" class="grid role-list"></div>',
+      '          <div class="total">',
+      '            <div class="total-label">Årlig pris (inkl. gebyrer og afgifter)</div>',
+      '            <div class="total-amount" id="total">0 kr.</div>',
+      "          </div>",
+      '          <div id="price-disclaimer" class="disclaimer">',
+      "            Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.",
+      "          </div>",
+      '          <button id="price-disclaimer-toggle" class="disclaimer-toggle" type="button">Læs mere …</button>',
+      "        </div>",
+      '        <aside class="col-aside">',
+      '          <h3 class="lead-title">Lyder det interessant?</h3>',
+      '          <h4 class="lead-subtitle">Så indtast dit telefonnummer</h4>',
+      '          <div class="phone-field">',
+      '            <label for="lead-phone">Telefonnummer</label>',
+      '            <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" autocomplete="tel">',
+      "          </div>",
+      '          <div class="privacy disclaimer">',
+      "            Vi behandler din data ordentligt.",
+      '            <a href="https://www.fforsikring.dk/politikker/privatlivspolitik" target="_blank" rel="noopener noreferrer">Læs vores privatlivspolitik</a>.',
+      "          </div>",
+      '          <div class="actions cta-area">',
+      '            <button id="submit" class="btn fullwidth">Bliv kontaktet af en rådgiver</button>',
+      "          </div>",
+      "        </aside>",
+      "      </div>",
+      '      <div class="actions back-row">',
+      '        <button id="back3" class="btn secondary">Tilbage</button>',
+      "      </div>",
+      "    </section>",
+      "  </div>",
+      "</div>",
+      '<div id="bridge" class="bridge-overlay" aria-hidden="true">',
+      '  <div class="bridge-box">',
+      '    <div class="bridge-title">Beregner pris…</div>',
+      '    <div class="meter"><span></span></div>',
+      '    <div class="bridge-hint">Et øjeblik – vi samler dine valg</div>',
+      "  </div>",
+      "</div>"
+    ].join("\n");
     document.body.appendChild(root);
 
     new ResizeObserver(safePostHeight).observe(root);
@@ -159,17 +164,21 @@
     /* --------------------------------------------
      * Helpers & state
      * ------------------------------------------ */
-    const $  = (s, el=document) => el.querySelector(s);
-    const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+    const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
 
     const state = { step: 1, cvr: "", virk: null, antal: 1, roles: [], total: 0 };
     const money = (n) => (n || 0).toLocaleString("da-DK") + " kr.";
     const cleanCVR = (v) => String(v || "").replace(/\D+/g, "").slice(0, 8);
-    const debounce = (fn, ms = 400) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
+    const debounce = (fn, ms = 400) => {
+      let t;
+      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    };
     function normalizeDkPhone(s) {
       if (!s) return "";
       let d = String(s).replace(/[^\d]/g, "");
-      if (d.startsWith("0045")) d = d.slice(4); else if (d.startsWith("45")) d = d.slice(2);
+      if (d.startsWith("0045")) d = d.slice(4);
+      else if (d.startsWith("45")) d = d.slice(2);
       return d;
     }
 
@@ -202,10 +211,10 @@
       // Meta Pixel (brug eksisterende navne)
       const metaEvt = metaName || name;
       try {
-        if (window.fbq) {
+        if (typeof window.fbq === "function") {
           if (metaEvt === "Lead") {
             fbq("track", "Lead", payload);
-          } else if (metaEvt) {
+          } else {
             fbq("trackCustom", metaEvt, payload);
           }
         }
@@ -231,8 +240,8 @@
       try {
         const r = await fetch("positions.json", { cache: "no-cache" });
         const d = await r.json();
-        POS = (d || []).sort((a,b)=>a.label.localeCompare(b.label,"da"));
-      } catch(_) {
+        POS = (d || []).sort((a, b) => a.label.localeCompare(b.label, "da"));
+      } catch (_) {
         POS = [];
       } finally {
         posLoaded = true;
@@ -244,30 +253,35 @@
     async function fetchVirkByCVR(cvr) {
       try {
         const r = await fetch("/api/cvr?cvr=" + encodeURIComponent(cvr));
-        if (!r.ok) { if (r.status === 429) return { kvote: true }; return null; }
+        if (!r.ok) {
+          if (r.status === 429) return { kvote: true };
+          return null;
+        }
         return await r.json();
-      } catch { return null; }
+      } catch {
+        return null;
+      }
     }
 
     /* Progress */
-    function setProgress(step){
+    function setProgress(step) {
       const bar = $("#progress-bar");
-      const pct = Math.max(1, Math.min(step,3)) / 3 * 100;
+      const pct = (Math.max(1, Math.min(step, 3)) / 3) * 100;
       if (bar) bar.style.width = pct + "%";
     }
 
     /* Steps */
     function setStep(n) {
       state.step = n;
-      $$(".step").forEach(el => el.classList.toggle("is", +el.dataset.step === n));
-      $$(".pane").forEach(el => el.hidden = (+el.dataset.step !== n));
+      $$(".step").forEach((el) => el.classList.toggle("is", +el.dataset.step === n));
+      $$(".pane").forEach((el) => (el.hidden = +el.dataset.step !== n));
       setProgress(n);
-      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch(_) {}
+      try { window.scrollTo({ top: 0, behavior: "smooth" }); } catch (_) {}
       safePostHeight();
 
       if (n === 2) {
         ensurePositions().then(() => { initStep2Once(); syncRoleRows(); });
-        // Visning af step 2 – brug "click" som generisk Meta event
+        // Visning af step 2 – marker som click i Meta
         fire("calc_step_view", buildPayload(), META.CLICK);
       } else if (n === 3) {
         requestAnimationFrame(wireDisclaimerToggle);
@@ -277,18 +291,22 @@
 
     /* Læs mere toggle (mobil) */
     let toggleWired = false;
-    function wireDisclaimerToggle(){
+    function wireDisclaimerToggle() {
       const disc = $("#price-disclaimer");
-      const btn  = $("#price-disclaimer-toggle");
+      const btn = $("#price-disclaimer-toggle");
       if (!disc || !btn) return;
       btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
       if (toggleWired) return;
       toggleWired = true;
-      btn.addEventListener("click", () => {
-        disc.classList.toggle("expanded");
-        btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
-        safePostHeight();
-      }, { passive: true });
+      btn.addEventListener(
+        "click",
+        () => {
+          disc.classList.toggle("expanded");
+          btn.textContent = disc.classList.contains("expanded") ? "Skjul tekst" : "Læs mere …";
+          safePostHeight();
+        },
+        { passive: true }
+      );
     }
 
     /* Step 2 init */
@@ -297,7 +315,10 @@
       if (antalInitialized) return;
       const sel = $("#antal");
       if (sel && !sel.children.length) {
-        sel.innerHTML = Array.from({ length: 10 }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+        sel.innerHTML = Array.from({ length: 10 }, (_, i) => {
+          const n = i + 1;
+          return `<option value="${n}">${n}</option>`;
+        }).join("");
         sel.value = "1";
       }
       sel?.addEventListener("change", () => { syncRoleRows(); safePostHeight(); });
@@ -321,9 +342,9 @@
 
       const renderList = (filter = "") => {
         const q = filter.toLowerCase();
-        const results = POS.filter(o => o.label.toLowerCase().includes(q)).slice(0, 60);
+        const results = POS.filter((o) => o.label.toLowerCase().includes(q)).slice(0, 60);
         list.innerHTML = results.length
-          ? results.map(r => `<li>${r.label}</li>`).join("")
+          ? results.map((r) => `<li>${r.label}</li>`).join("")
           : "<li class='empty'>Ingen resultater</li>";
       };
 
@@ -335,8 +356,8 @@
         if (e.key === "Enter") {
           const first = list.querySelector("li:not(.empty)");
           if (first) {
-            input.value = first.textContent;
-            state.roles[index] = first.textContent;
+            input.value = first.textContent || "";
+            state.roles[index] = first.textContent || "";
             list.hidden = true;
             e.preventDefault();
           }
@@ -345,9 +366,10 @@
       input.addEventListener("blur", () => setTimeout(() => (list.hidden = true), 130));
 
       list.addEventListener("mousedown", (e) => {
-        if (e.target.tagName === "LI" && !e.target.classList.contains("empty")) {
-          input.value = e.target.textContent;
-          state.roles[index] = e.target.textContent;
+        if (e.target && e.target.tagName === "LI" && !e.target.classList.contains("empty")) {
+          const txt = e.target.textContent || "";
+          input.value = txt;
+          state.roles[index] = txt;
           list.hidden = true;
         }
       });
@@ -366,7 +388,6 @@
       const target = parseInt(sel.value || "1", 10);
       state.antal = target;
 
-      // start TOMT (ikke POS[0])
       if (state.roles.length < target) {
         state.roles = state.roles.concat(new Array(target - state.roles.length).fill(""));
       } else if (state.roles.length > target) {
@@ -399,27 +420,29 @@
       list.classList.add("role-list");
       list.innerHTML = "";
 
-      if (!_priceMap) _priceMap = new Map(POS.map(o => [o.label, o.price]));
+      if (!_priceMap) _priceMap = new Map(POS.map((o) => [o.label, o.price]));
 
       let sum = 0;
       const frag = document.createDocumentFragment();
 
-      for (let i=0;i<state.roles.length;i++){
+      for (let i = 0; i < state.roles.length; i++) {
         const r = state.roles[i];
         const p = _priceMap.get(r) || 0;
         sum += p;
         const div = document.createElement("div");
         div.className = "role-card";
-        div.innerHTML = `
-          <div class="idx">${i + 1}</div>
-          <div>${r || "—"}</div>
-          <div class="price-pill">${(p||0).toLocaleString("da-DK",{minimumFractionDigits:2})} kr.</div>`;
+        div.innerHTML = (
+          `<div class="idx">${i + 1}</div>` +
+          `<div>${r || "—"}</div>` +
+          `<div class="price-pill">${(p || 0).toLocaleString("da-DK", { minimumFractionDigits: 2 })} kr.</div>`
+        );
         frag.appendChild(div);
       }
 
       list.appendChild(frag);
       state.total = Math.round(sum);
-      $("#total").textContent = money(state.total);
+      const t = $("#total");
+      if (t) t.textContent = money(state.total);
       safePostHeight();
 
       // Internt DL-event (Meta = 'click' som generisk)
@@ -432,24 +455,25 @@
       box.textContent = "Henter virksomhedsdata…";
       const v = await fetchVirkByCVR(val);
 
-      if (v?.kvote) {
+      if (v && v.kvote) {
         box.innerHTML = '<div class="muted">Vi har ramt opslaggrænsen hos CVR lige nu. Prøv igen om lidt – vi indhenter data manuelt, hvis det fortsætter.</div>';
-        safePostHeight(); return;
+        safePostHeight();
+        return;
       }
 
       if (v && (v.navn || v.name || v.cvr)) {
         state.virk = v; state.cvr = val;
         const navn = v.navn || v.name || "-";
         const adresse = v.adresse || v.address || "-";
-        const branche = v.branche || v.industrydesc;
-        const branchekode = v.branchekode || v.industrycode;
-        box.innerHTML =
-          `<div class="review-row"><strong>Virksomhed:</strong> ${navn}</div>
-           <div class="review-row"><strong>CVR:</strong> ${v.cvr || "-"}</div>
-           <div class="review-row"><strong>Adresse:</strong> ${adresse}</div>
-           ${branche ? `<div class="review-row"><strong>Branche:</strong> ${branche}</div>` : ""}
-           ${branchekode ? `<div class="review-row"><strong>Branchekode:</strong> ${branchekode}</div>` : ""}`;
-
+        const branche = v.branche || v.industrydesc || "";
+        const branchekode = v.branchekode || v.industrycode || "";
+        box.innerHTML = [
+          `<div class="review-row"><strong>Virksomhed:</strong> ${navn}</div>`,
+          `<div class="review-row"><strong>CVR:</strong> ${v.cvr || "-"}</div>`,
+          `<div class="review-row"><strong>Adresse:</strong> ${adresse}</div>`,
+          branche ? `<div class="review-row"><strong>Branche:</strong> ${branche}</div>` : "",
+          branchekode ? `<div class="review-row"><strong>Branchekode:</strong> ${branchekode}</div>` : ""
+        ].join("");
         // Brugers formular er udfyldt (CVR) → Meta: "Udfyldt formular"
         fire("cvr_fetched", buildPayload({ fields: ["cvr"] }), META.FORM_FILLED);
       } else {
@@ -488,26 +512,31 @@
       });
 
       antalEl?.addEventListener("change", () => { syncRoleRows(); safePostHeight(); });
-      back2 && (back2.onclick = () => setStep(1));
+      if (back2) back2.onclick = () => setStep(1);
 
-      next2 && (next2.onclick = () => {
-        _priceMap = null;
+      if (next2) {
+        next2.onclick = () => {
+          _priceMap = null;
+          const byLabel = new Map(POS.map((o) => [o.label, o.price]));
+          const bad = state.roles.findIndex((r) => !byLabel.has(r));
+          if (bad !== -1) { toast("Vælg en gyldig stilling for medarbejder " + (bad + 1), "error"); return; }
 
-        const byLabel = new Map(POS.map(o => [o.label, o.price]));
-        const bad = state.roles.findIndex(r => !byLabel.has(r));
-        if (bad !== -1) { toast("Vælg en gyldig stilling for medarbejder " + (bad + 1), "error"); return; }
+          // Klik på "Se pris" → Meta: click
+          fire("calc_price_requested", buildPayload({ step: 2 }), META.CLICK);
 
-        // Klik på "Se pris" → Meta: click
-        fire("calc_price_requested", buildPayload({ step: 2 }), META.CLICK);
+          calculateTotal();
 
-        calculateTotal();
+          const bridge = $("#bridge");
+          if (bridge) {
+            bridge.classList.add("show");
+            setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, THINK_MS);
+          } else {
+            setStep(3);
+          }
+        };
+      }
 
-        const bridge = $("#bridge");
-        bridge.classList.add("show");
-        setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, THINK_MS);
-      });
-
-      back3 && (back3.onclick = () => setStep(2));
+      if (back3) back3.onclick = () => setStep(2);
 
       submitBtn?.addEventListener("click", () => {
         const phoneEl = $("#lead-phone");
@@ -529,24 +558,27 @@
           utm_campaign: urlp.get("utm_campaign") || "",
           utm_term: urlp.get("utm_term") || "",
           utm_content: urlp.get("utm_content") || "",
-          ts: Date.now(),
+          ts: Date.now()
         };
 
         // Klik på CTA → Meta: click
         fire("lead_submit_click", buildPayload(), META.CLICK);
 
-        fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadForLead) })
-          .catch(() => {});
+        fetch("/api/lead", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payloadForLead)
+        }).catch(() => {});
 
-        submitBtn.setAttribute("disabled", "true");
-        phoneEl?.setAttribute("disabled", "true");
-        submitBtn.textContent = "Tak! Vi kontakter dig";
+        if (submitBtn) submitBtn.setAttribute("disabled", "true");
+        if (phoneEl) phoneEl.setAttribute("disabled", "true");
+        if (submitBtn) submitBtn.textContent = "Tak! Vi kontakter dig";
         toast("Tak! Vi kontakter dig snarest.", "success", 3500);
 
-        // Rigtig formular-afsendelse → Meta: form_submit
+        // Formular-afsendelse → Meta: form_submit
         fire("form_submit", buildPayload(), META.FORM_SUBMIT);
 
-        // Lead (standard Meta event) – behold også internt eventnavn i DL
+        // Lead (standard Meta event)
         fire("lead_submitted", buildPayload(), META.LEAD);
 
         safePostHeight();
