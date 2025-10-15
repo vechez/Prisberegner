@@ -178,6 +178,28 @@
     return d;
   }
 
+  /* ---------- Tracking helper ---------- */
+  function buildPayload(extra = {}) {
+    const roles = (state.roles || []).filter(Boolean);
+    return {
+      step: state.step,
+      roles,
+      count: roles.length,
+      value: state.total || 0,
+      currency: "DKK",
+      ...extra
+    };
+  }
+  function track(eventName, payload = {}) {
+    try {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: eventName, ...payload });
+    } catch (_) {}
+    try {
+      parent.postMessage({ type: "FF_CALC_EVENT", event: eventName, payload }, "*");
+    } catch (_) {}
+  }
+
   /* Data: stillinger */
   let POS = [];
   let posLoaded = false, posLoading = false;
@@ -224,8 +246,10 @@
 
     if (n === 2) {
       ensurePositions().then(() => { initStep2Once(); syncRoleRows(); });
+      track("calc_step_view", buildPayload()); // step 2 view
     } else if (n === 3) {
       requestAnimationFrame(wireDisclaimerToggle);
+      track("calc_step_view", buildPayload()); // step 3 view
     }
   }
 
@@ -375,6 +399,9 @@
     state.total = Math.round(sum);
     $("#total").textContent = money(state.total);
     safePostHeight();
+
+    // Tracking når prisen er klar
+    track("calc_price_calculated", buildPayload());
   }
 
   /* CVR fetch m. debounce */
@@ -438,10 +465,16 @@
 
     next2 && (next2.onclick = () => {
       _priceMap = null;
+
       const byLabel = new Map(POS.map(o => [o.label, o.price]));
       const bad = state.roles.findIndex(r => !byLabel.has(r));
       if (bad !== -1) { toast("Vælg en gyldig stilling for medarbejder " + (bad + 1), "error"); return; }
+
+      // Tracking: bruger har bedt om pris
+      track("calc_price_requested", buildPayload({ step: 2 }));
+
       calculateTotal();
+
       const bridge = $("#bridge");
       bridge.classList.add("show");
       setTimeout(() => { bridge.classList.remove("show"); setStep(3); }, THINK_MS);
@@ -456,10 +489,10 @@
       if (phoneEl) phoneEl.value = normalized;
 
       const urlp = new URLSearchParams(location.search);
-      const payload = {
+      const payloadForLead = {
         cvr: state.cvr || cleanCVR($("#cvr")?.value),
         virk: state.virk || {},
-        roles: state.roles,
+        roles: (state.roles || []).filter(Boolean),
         total: state.total,
         phone: normalized,
         page: location.href,
@@ -472,7 +505,10 @@
         ts: Date.now(),
       };
 
-      fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      // Tracking: klik på CTA
+      track("lead_submit_click", buildPayload());
+
+      fetch("/api/lead", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payloadForLead) })
         .catch(() => {});
 
       submitBtn.setAttribute("disabled", "true");
@@ -480,9 +516,8 @@
       submitBtn.textContent = "Tak! Vi kontakter dig";
       toast("Tak! Vi kontakter dig snarest.", "success", 3500);
 
-      try { window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "lead_submitted", value: state.total }); } catch(_) {}
-      try { parent.postMessage({ type: "FF_CALC_EVENT", event: "lead_submitted", value: state.total }, "*"); } catch(_) {}
-
+      // Tracking: lead er registreret
+      track("lead_submitted", buildPayload());
       safePostHeight();
     });
   }
