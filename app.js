@@ -191,17 +191,28 @@
     };
   }
   function track(eventName, payload = {}) {
-  // --- Push til dataLayer (CAPI / GTM) ---
+  // dataLayer (GTM/CAPI)
   try {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({ event: eventName, ...payload });
   } catch (_) {}
 
-  // --- Send til parent (Webflow) ---
+  // postMessage til parent (Webflow)
   try {
     parent.postMessage({ type: "FF_CALC_EVENT", event: eventName, payload }, "*");
   } catch (_) {}
 
+  // Meta Pixel
+  try {
+    if (window.fbq) {
+      if (eventName === 'lead_submitted' || eventName === 'Lead') {
+        fbq('track', 'Lead', payload);
+      } else {
+        fbq('trackCustom', eventName, payload);
+      }
+    }
+  } catch (_) {}
+}
   // --- Meta Pixel (direkte tracking) ---
   try {
     if (window.fbq) {
