@@ -191,15 +191,29 @@
     };
   }
   function track(eventName, payload = {}) {
-    try {
-      window.dataLayer = window.dataLayer || [];
-      window.dataLayer.push({ event: eventName, ...payload });
-    } catch (_) {}
-    try {
-      parent.postMessage({ type: "FF_CALC_EVENT", event: eventName, payload }, "*");
-    } catch (_) {}
-  }
+  // --- Push til dataLayer (CAPI / GTM) ---
+  try {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ event: eventName, ...payload });
+  } catch (_) {}
 
+  // --- Send til parent (Webflow) ---
+  try {
+    parent.postMessage({ type: "FF_CALC_EVENT", event: eventName, payload }, "*");
+  } catch (_) {}
+
+  // --- Meta Pixel (direkte tracking) ---
+  try {
+    if (window.fbq) {
+      if (eventName === "lead_submitted" || eventName === "Lead") {
+        fbq("track", "Lead", payload);
+      } else {
+        fbq("trackCustom", eventName, payload);
+      }
+    }
+  } catch (e) {}
+}
+  
   /* Data: stillinger */
   let POS = [];
   let posLoaded = false, posLoading = false;
