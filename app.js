@@ -76,7 +76,7 @@
     const root = document.createElement("div");
     root.className = "wrap";
     root.innerHTML = [
-      '<div class="card" role="region" aria-label="Arbejdsskade - prisberegner">',
+      '<div class="card" role="region" aria-label="Arbejdsskade - Prisberegner">',
       '  <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>',
       '  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>',
       '  <div class="steps" aria-hidden="true">',
@@ -122,7 +122,7 @@
       '            <div class="total-amount" id="total">0 kr.</div>',
       "          </div>",
       '          <div id="price-disclaimer" class="disclaimer">',
-      "            Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud fra en af vores mange samarbejdspartnere.",
+      "            Den viste pris er vejledende og ikke garanteret, da skadeshistorik, indeksering og øvrige forsikringsforhold kan påvirke den endelige pris. Priserne er baseret på tilbud, fra en af vores mange samarbejdspartnere.",
       "          </div>",
       '          <button id="price-disclaimer-toggle" class="disclaimer-toggle" type="button">Læs mere …</button>',
       "        </div>",
