@@ -77,7 +77,7 @@
     root.className = "wrap";
     root.innerHTML = [
       '<div class="card" role="region" aria-label="Arbejdsskade - Prisberegner">',
-      '  <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - prisberegner</h2></div>',
+      '  <div class="hdr"><div class="dot" aria-hidden="true"></div><h2 class="title">Arbejdsskade - Prisberegner</h2></div>',
       '  <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>',
       '  <div class="steps" aria-hidden="true">',
       '    <div class="step is" data-step="1">1. CVR</div>',
