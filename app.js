@@ -128,7 +128,7 @@
       "        </div>",
       '        <aside class="col-aside">',
       '          <h3 class="lead-title">Lyder det interessant?</h3>',
-      '          <h4 class="lead-subtitle">Så indtast dit telefonnummer</h4>',
+      '          <h4 class="lead-subtitle">4 ud af 5 spare penge ved at skifte til Fællesr</h4>',
       '          <div class="phone-field">',
       '            <label for="lead-phone">Telefonnummer</label>',
       '            <input id="lead-phone" name="phone" type="tel" inputmode="tel" placeholder="XXXXXXXX" autocomplete="tel">',
